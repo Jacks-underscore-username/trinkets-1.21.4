@@ -19,6 +19,7 @@ public class MainClient implements ClientModInitializer {
 			BlockEntity blockEntity = view.getBlockEntity(pos);
 
 			if (blockEntity instanceof EchoPortalBlockEntity) {
+
 				return ((EchoPortalBlockEntity) blockEntity).colorInt;
 			} else return 0;
 
