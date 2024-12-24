@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "axis=x": {
+      "model": "trinkets:block/echo_portal_ns"
+    },
+    "axis=z": {
+      "model": "trinkets:block/echo_portal_ew"
+    }
+  }
+}
