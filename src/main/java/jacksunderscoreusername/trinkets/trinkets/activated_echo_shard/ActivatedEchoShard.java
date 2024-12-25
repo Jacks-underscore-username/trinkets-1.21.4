@@ -49,25 +49,6 @@ public class ActivatedEchoShard extends Trinket {
         super(settings);
     }
 
-    // Checks if the item is too far to create a portal.
-    public static boolean isTooFar(ItemStack stack) {
-        StoredPortalComponent.StoredPortal portalComponent = stack.get(STORED_PORTAL);
-        if (stack.getHolder() == null || portalComponent == null || !portalComponent.hasPortal()) {
-            return true;
-        }
-
-        int maxDistance = stack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_LEVEL)).level() * 250;
-
-        Main.LOGGER.info(stack.toString());
-
-        // Calculate the positions as if they were in the overworld.
-        BlockPos overworldHere = stack.getHolder().getWorld().getRegistryKey().equals(World.NETHER) ? stack.getHolder().getBlockPos().multiply(8) : stack.getHolder().getBlockPos();
-        BlockPos overworldTarget = portalComponent.dim().equals(World.NETHER) ? portalComponent.pos().multiply(8) : portalComponent.pos();
-        int distance = overworldHere.getManhattanDistance(overworldTarget);
-
-        return distance > maxDistance;
-    }
-
     public void initialize() {
         // Register this trinket with the creation handlers so that it can spawn on warden kill.
         TrinketCreationHandlers.OnMobKill(EntityType.WARDEN, 10, this);
