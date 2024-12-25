@@ -13,18 +13,18 @@ import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
+import net.minecraft.state.property.EnumProperty;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.BlockRotation;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
+import net.minecraft.util.shape.VoxelShape;
 import net.minecraft.world.*;
 import net.minecraft.world.dimension.NetherPortal;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.Objects;
 
 // It has to extend BlockWithEntity to have block data, but also needs to implement portal to be used as a portal without doing everything itself.
 public class EchoPortal extends BlockWithEntity implements Portal {
@@ -206,5 +206,20 @@ public class EchoPortal extends BlockWithEntity implements Portal {
     @Override
     public Effect getPortalEffect() {
         return Effect.CONFUSION;
+    }
+
+    // Make the blocks hitbox work.
+    protected static final VoxelShape X_SHAPE = Block.createCuboidShape(0.0, 0.0, 6.0, 16.0, 16.0, 10.0);
+    protected static final VoxelShape Z_SHAPE = Block.createCuboidShape(6.0, 0.0, 0.0, 10.0, 16.0, 16.0);
+    public static final EnumProperty<Direction.Axis> AXIS = Properties.HORIZONTAL_AXIS;
+    @Override
+    protected VoxelShape getOutlineShape(BlockState state, BlockView world, BlockPos pos, ShapeContext context) {
+        switch (state.get(AXIS)) {
+            case Z:
+                return Z_SHAPE;
+            case X:
+            default:
+                return X_SHAPE;
+        }
     }
 }
