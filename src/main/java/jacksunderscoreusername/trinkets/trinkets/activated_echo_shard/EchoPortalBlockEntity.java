@@ -2,7 +2,6 @@ package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
 
 import net.minecraft.block.BlockState;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.block.entity.BlockEntityType;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.packet.s2c.play.BlockEntityUpdateS2CPacket;
 import net.minecraft.registry.RegistryWrapper;
@@ -18,7 +17,6 @@ public class EchoPortalBlockEntity extends BlockEntity {
     public BlockPos teleportPos = BlockPos.ORIGIN;
     // Color is stored as an RGB value, so 0 - 256**3-2
     public int colorInt = 0;
-    public static int defaultColor = 0;
 
     public EchoPortalBlockEntity(BlockPos pos, BlockState state) {
         super(SetupBlocks.ECHO_PORTAL_BLOCK_ENTITY, pos, state);

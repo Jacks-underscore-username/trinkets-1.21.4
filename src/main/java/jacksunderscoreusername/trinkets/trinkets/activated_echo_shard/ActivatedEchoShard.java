@@ -91,10 +91,6 @@ public class ActivatedEchoShard extends Trinket {
                             // Generate a random color for the portal pair.
                             int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
 
-                            // TODO: Do I need this?
-                            // Set the default color for portal blocks to the chosen color, this is so that when the blocks are placed (but before the blockEntity is setup) and first rendering they have the correct color.
-                            EchoPortalBlockEntity.defaultColor = color;
-
                             // TODO: Make this better.
                             // Place the portal blocks for the stored portal location.
                             Utils.fillArea(Main.server.getWorld(itemData.dim()), SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1);
