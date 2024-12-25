@@ -54,6 +54,9 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         EchoPortalBlockEntity blockEntity = ((EchoPortalBlockEntity) world.getBlockEntity(pos));
         assert blockEntity != null;
 
+        // The block of the current portal.
+        BlockState blockState = world.getBlockState(pos);
+
         // The world the other portal is in (if it exists).
         World otherWorld = Main.server.getWorld(RegistryKey.of(RegistryKeys.WORLD, blockEntity.dimension));
         assert otherWorld != null;
@@ -72,7 +75,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         assert otherBlockEntity != null;
 
         // If the other portal's block entity is linked with a portal that is not this portal, destroy this portal.
-        Direction.Axis axis = (targetPortalBlock.getOrEmpty(Properties.HORIZONTAL_AXIS).isEmpty() ? targetPortalBlock.getBlock().getDefaultState().get(Properties.HORIZONTAL_AXIS) : targetPortalBlock.get(Properties.HORIZONTAL_AXIS));
+        Direction.Axis axis = (blockState.getOrEmpty(Properties.HORIZONTAL_AXIS).isEmpty() ? blockState.getBlock().getDefaultState().get(Properties.HORIZONTAL_AXIS) : blockState.get(Properties.HORIZONTAL_AXIS)).equals(Direction.Axis.X) ? Direction.Axis.Z : Direction.Axis.X;
         if (!Utils.areBothPointsConnected(pos, world.getRegistryKey(), otherBlockEntity.teleportPos, RegistryKey.of(RegistryKeys.WORLD, otherBlockEntity.dimension), Setup.ECHO_PORTAL, axis)) {
             world.setBlockState(pos, Blocks.AIR.getDefaultState());
             return;
