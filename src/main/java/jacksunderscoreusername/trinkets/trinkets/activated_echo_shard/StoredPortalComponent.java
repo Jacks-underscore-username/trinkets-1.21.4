@@ -21,7 +21,6 @@ public class StoredPortalComponent {
         ).apply(builder, StoredPortal::new));
     }
 
-
     public static final ComponentType<StoredPortal> STORED_PORTAL = Registry.register(
             Registries.DATA_COMPONENT_TYPE,
             Identifier.of(Main.MOD_ID, "stored_portal"),

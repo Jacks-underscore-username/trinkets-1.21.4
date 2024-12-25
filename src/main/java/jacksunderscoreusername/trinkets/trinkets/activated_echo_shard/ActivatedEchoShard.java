@@ -1,15 +1,13 @@
 package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
 
-import jacksunderscoreusername.trinkets.Main;
-import jacksunderscoreusername.trinkets.Trinket;
-import jacksunderscoreusername.trinkets.TrinketCreationHandlers;
-import jacksunderscoreusername.trinkets.Utils;
+import jacksunderscoreusername.trinkets.*;
+import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
-import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
+import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -27,10 +25,8 @@ import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
-// TODO: Sounds are broken.
-
+import static jacksunderscoreusername.trinkets.TrinketLevelComponent.TRINKET_LEVEL;
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.StoredPortalComponent.STORED_PORTAL;
 
 public class ActivatedEchoShard extends Trinket {
@@ -42,11 +38,34 @@ public class ActivatedEchoShard extends Trinket {
     }
 
     public static Settings getSettings() {
-        return new Settings().rarity(Rarity.EPIC).maxCount(1).component(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
+        return new Settings()
+                .maxCount(1)
+                .component(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(1))
+                .rarity(Rarity.EPIC)
+                .component(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
     }
 
     public ActivatedEchoShard(Settings settings) {
         super(settings);
+    }
+
+    // Checks if the item is too far to create a portal.
+    public static boolean isTooFar(ItemStack stack) {
+        StoredPortalComponent.StoredPortal portalComponent = stack.get(STORED_PORTAL);
+        if (stack.getHolder() == null || portalComponent == null || !portalComponent.hasPortal()) {
+            return true;
+        }
+
+        int maxDistance = stack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_LEVEL)).level() * 250;
+
+        Main.LOGGER.info(stack.toString());
+
+        // Calculate the positions as if they were in the overworld.
+        BlockPos overworldHere = stack.getHolder().getWorld().getRegistryKey().equals(World.NETHER) ? stack.getHolder().getBlockPos().multiply(8) : stack.getHolder().getBlockPos();
+        BlockPos overworldTarget = portalComponent.dim().equals(World.NETHER) ? portalComponent.pos().multiply(8) : portalComponent.pos();
+        int distance = overworldHere.getManhattanDistance(overworldTarget);
+
+        return distance > maxDistance;
     }
 
     public void initialize() {
@@ -88,20 +107,46 @@ public class ActivatedEchoShard extends Trinket {
                 } else if (!samePortal) {
                     // This branch handles trying to link two portals.
 
+                    //First see if the portal is too far.
+                    StoredPortalComponent.StoredPortal portalComponent = itemStack.get(STORED_PORTAL);
+
+                    int maxDistance = itemStack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(itemStack.get(TRINKET_LEVEL)).level() * 250;
+
+                    // Calculate the positions as if they were in the overworld.
+                    BlockPos overworldHere = world.getRegistryKey().equals(World.NETHER) ? pos.multiply(8) : pos;
+                    BlockPos overworldTarget = portalComponent.dim().equals(World.NETHER) ? portalComponent.pos().multiply(8) : portalComponent.pos();
+                    int distance = overworldHere.getManhattanDistance(overworldTarget);
+
+
+                    // If they are too far.
+                    if (distance > maxDistance) {
+                        // Notify the player that they are too far.
+                        player.sendMessage(Text.literal("The linked portal is " + (distance - maxDistance) + " blocks too far").formatted(Formatting.RED), true);
+                        world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
+
+                        // Returns success so that the player swings and no further listeners fire.
+                        ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(player.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
+                        return ActionResult.SUCCESS;
+                    }
+
                     // Check that a portal block still exists at the saved location / dimension in the item.
-                    if (Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getBlock().equals(Blocks.NETHER_PORTAL)) {
+                    if (Objects.requireNonNull(Main.server.getWorld(itemData.dim())).getBlockState(itemData.pos()).getBlock().equals(Blocks.NETHER_PORTAL)) {
                         world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.0F, 0.75F);
 
                         // The bounding box of the stored portal.
-                        Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL, Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
+                        Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL, Objects.requireNonNull(Main.server.getWorld(itemData.dim())).getBlockState(itemData.pos()).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
                         // The bounding box of the currently selected portal.
                         Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL, world.getBlockState(pos).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
 
                         // Generate a random color for the portal pair.
                         int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
 
-                        // Place the portal blocks for the stored portal location. Then set the data in each blockEntity in the selected portal.
-                        Utils.fillArea(Main.server.getWorld(itemData.dim()), Setup.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1, blockEntity -> {
+                        // Store the other world.
+                        World otherWorld = Main.server.getWorld(itemData.dim());
+                        assert otherWorld != null;
+
+                        // Place the portal blocks for the stored portal location, then set the data in each blockEntity in the selected portal.
+                        Utils.fillArea(otherWorld, Setup.ECHO_PORTAL.getStateWithProperties(otherWorld.getBlockState(itemData.pos())), bounds1, blockEntity -> {
                             EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
                             assert blockEntity != null;
 
@@ -111,13 +156,14 @@ public class ActivatedEchoShard extends Trinket {
                             portalEntity.checkForNetherPortal = true;
                             portalEntity.markDirty();
                         });
-                        // Place the portal blocks for the selected portal. Then set the data in each blockEntity in the stored portal's portal.
+
+                        // Place the portal blocks for the selected portal, then set the data in each blockEntity in the stored portal's portal.
                         Utils.fillArea(world, Setup.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2, blockEntity -> {
                             EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
                             assert blockEntity != null;
 
                             portalEntity.colorInt = color;
-                            portalEntity.dimension = world.getRegistryKey().getValue();
+                            portalEntity.dimension = otherWorld.getRegistryKey().getValue();
                             portalEntity.teleportPos = bounds1.max;
                             portalEntity.checkForNetherPortal = true;
                             portalEntity.markDirty();
@@ -141,6 +187,23 @@ public class ActivatedEchoShard extends Trinket {
 
             // Returns pass so that the player does not swing their arm and the next event listener can run.
             return ActionResult.PASS;
+        });
+
+        // Setup the trinket upgrading logic.
+        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
+            if (
+                    entity instanceof PlayerEntity &&
+                            (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD) ||
+                                    ((PlayerEntity) entity).getOffHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD)) &&
+                            killedEntity instanceof WardenEntity
+            ) {
+                if (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD)) {
+                    ((PlayerEntity) entity).getMainHandStack().set(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(((PlayerEntity) entity).getMainHandStack().get(TRINKET_LEVEL) == null ? 2 : Objects.requireNonNull(((PlayerEntity) entity).getMainHandStack().get(TRINKET_LEVEL)).level() + 1));
+                } else {
+                    ((PlayerEntity) entity).getOffHandStack().set(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(((PlayerEntity) entity).getOffHandStack().get(TRINKET_LEVEL) == null ? 2 : Objects.requireNonNull(((PlayerEntity) entity).getOffHandStack().get(TRINKET_LEVEL)).level() + 1));
+                }
+                world.playSound(null, entity.getBlockPos(), SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
+            }
         });
 
         // Links the echo portal block and block entity.
@@ -181,7 +244,11 @@ public class ActivatedEchoShard extends Trinket {
     // This runs effectively constantly whenever the tooltip is needed, so there is no need to trigger any event to update the tooltip.
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+
+        // Get the stored data in the item.
         StoredPortalComponent.StoredPortal itemData = stack.get(STORED_PORTAL);
+
+        int maxDistance = stack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_LEVEL)).level() * 250;
 
         // If the item has no stored portal.
         if (itemData == null || !itemData.hasPortal()) {
@@ -189,9 +256,12 @@ public class ActivatedEchoShard extends Trinket {
             tooltip.add(Text.literal("Right click a nether portal to link").formatted(Formatting.ITALIC));
         } else {
             // If the item has a stored portal (regardless of whether it still exists).
-            tooltip.add(Text.literal("Linked to a portal at ").formatted(Formatting.DARK_PURPLE).append(Text.literal("(" + itemData.pos().getX() + ", " + itemData.pos().getY() + ", " + itemData.pos().getZ() + ") in dimension " + itemData.dim().getValue().getPath()).formatted(Formatting.AQUA)));
+            tooltip.add(Text.literal("Linked to a portal at ").formatted(Formatting.LIGHT_PURPLE).append(Text.literal("(" + itemData.pos().getX() + ", " + itemData.pos().getY() + ", " + itemData.pos().getZ() + ") in dimension " + itemData.dim().getValue().getPath()).formatted(Formatting.AQUA)));
             tooltip.add(Text.literal("Right click a different nether portal to link them").formatted(Formatting.ITALIC));
             tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(Formatting.ITALIC));
         }
+
+        tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.DARK_PURPLE));
+        tooltip.add(Text.literal("Kill a warden while holding this to increase max range").formatted(Formatting.DARK_PURPLE, Formatting.ITALIC));
     }
 }

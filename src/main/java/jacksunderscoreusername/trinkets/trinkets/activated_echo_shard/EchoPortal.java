@@ -39,8 +39,14 @@ public class EchoPortal extends BlockWithEntity implements Portal {
     // Make entities treat this like a portal.
     @Override
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        // If this is the client it has to skip this since it cannot view the needed blocks.
-        if (world.isClient || !entity.canUsePortals(false)) {
+        // Check if the entity can even use portals.
+        if (!entity.canUsePortals(false)) {
+            return;
+        }
+
+        // The client cannot run the actual portal conditions code, so it just always tries to teleport so that distortion still works.
+        if (world.isClient) {
+            entity.tryUsePortal(this, pos);
             return;
         }
 
@@ -194,6 +200,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
     }
 
     // Make it so it looks like you're in a portal when you're in the portal.
+    @Override
     public Effect getPortalEffect() {
         return Effect.CONFUSION;
     }

@@ -1,7 +1,10 @@
 package jacksunderscoreusername.trinkets;
 
+import jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.StoredPortalComponent;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.item.Item;
+
+import static jacksunderscoreusername.trinkets.TrinketLevelComponent.TRINKET_LEVEL;
 
 public class Trinket extends Item {
     public Trinket(Settings settings) {
@@ -13,7 +16,7 @@ public class Trinket extends Item {
     }
 
     public static Settings getSettings() {
-        return new Settings();
+        return new Settings().component(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(1));
     }
 
     public void markCreated() {
