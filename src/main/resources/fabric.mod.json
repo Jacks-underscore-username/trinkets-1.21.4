@@ -3,13 +3,13 @@
 	"id": "trinkets",
 	"version": "${version}",
 	"name": "Trinkets",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "A mod that adds unique trinkets",
 	"authors": [
-		"Me!"
+		"jacks-underscore-username",
+		"catsz"
 	],
 	"contact": {
-		"homepage": "https://fabricmc.net/",
-		"sources": "https://github.com/FabricMC/fabric-example-mod"
+		"sources": "https://github.com/Jacks-underscore-username/trinkets-1.21.4"
 	},
 	"license": "CC0-1.0",
 	"icon": "assets/trinkets/icon.png",
@@ -36,6 +36,5 @@
 		"fabric-api": "*"
 	},
 	"suggests": {
-		"another-mod": "*"
 	}
 }

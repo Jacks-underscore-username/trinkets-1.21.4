@@ -19,7 +19,7 @@ public class EchoPortalBlockEntity extends BlockEntity {
     public int colorInt = 0;
 
     public EchoPortalBlockEntity(BlockPos pos, BlockState state) {
-        super(SetupBlocks.ECHO_PORTAL_BLOCK_ENTITY, pos, state);
+        super(Setup.ECHO_PORTAL_BLOCK_ENTITY, pos, state);
     }
 
     // Used to store the data between world reloads.

@@ -1,6 +1,8 @@
 package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
 
 import com.mojang.serialization.MapCodec;
+import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.Utils;
 import net.minecraft.block.*;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.entity.Entity;
@@ -22,6 +24,8 @@ import net.minecraft.world.dimension.NetherPortal;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 // It has to extend BlockWithEntity to have block data, but also needs to implement portal to be used as a portal without doing everything itself.
 public class EchoPortal extends BlockWithEntity implements Portal {
     public static final MapCodec<EchoPortal> CODEC = createCodec(EchoPortal::new);
@@ -35,9 +39,40 @@ public class EchoPortal extends BlockWithEntity implements Portal {
     // Make entities treat this like a portal.
     @Override
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
-        if (entity.canUsePortals(false)) {
-            entity.tryUsePortal(this, pos);
+        // If this is the client it has to skip this since it cannot view the needed blocks.
+        if (world.isClient || !entity.canUsePortals(false)) {
+            return;
         }
+
+        // A block entity from the current portal with data on the target.
+        EchoPortalBlockEntity blockEntity = ((EchoPortalBlockEntity) world.getBlockEntity(pos));
+        assert blockEntity != null;
+
+        // The world the other portal is in (if it exists).
+        World otherWorld = Main.server.getWorld(RegistryKey.of(RegistryKeys.WORLD, blockEntity.dimension));
+        assert otherWorld != null;
+
+        // A block from the other portal (if it exists).
+        BlockState targetPortalBlock = otherWorld.getBlockState(blockEntity.teleportPos);
+
+        // If there is no portal at the saved location destroy this portal and abort.
+        if (!(targetPortalBlock.getBlock() instanceof EchoPortal)) {
+            world.setBlockState(pos, Blocks.AIR.getDefaultState());
+            return;
+        }
+
+        // A block entity from the other portal.
+        EchoPortalBlockEntity otherBlockEntity = ((EchoPortalBlockEntity) otherWorld.getBlockEntity(blockEntity.teleportPos));
+        assert otherBlockEntity != null;
+
+        // If the other portal's block entity is linked with a portal that is not this portal, destroy this portal.
+        if (!Utils.areBothPointsConnected(pos, world.getRegistryKey(), otherBlockEntity.teleportPos, RegistryKey.of(RegistryKeys.WORLD, otherBlockEntity.dimension), Setup.ECHO_PORTAL)) {
+            world.setBlockState(pos, Blocks.AIR.getDefaultState());
+            return;
+        }
+
+        // Otherwise the portals are still both there and the teleport can happen.
+        entity.tryUsePortal(this, pos);
     }
 
     // Copied from the netherPortalBlock code, sets the amount of time the entity has to be in the portal before they teleport.
