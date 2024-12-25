@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.mob.WardenEntity;
@@ -60,7 +61,8 @@ public class ActivatedEchoShard extends Trinket {
             }
             ItemStack itemStack = player.getStackInHand(hand);
             BlockPos pos = hitResult.getBlockPos();
-            Block targetedBlock = world.getBlockState(pos).getBlock();
+            BlockState targetedBlockState = world.getBlockState(pos);
+            Block targetedBlock = targetedBlockState.getBlock();
 
             // Since this event triggers for both hands it needs to check and make sure that the current hand is the one holding the item.
             // It needs to make sure the player isn't sneaking since that is tied to other actions.
@@ -70,7 +72,8 @@ public class ActivatedEchoShard extends Trinket {
                 StoredPortalComponent.StoredPortal itemData = itemStack.get(STORED_PORTAL);
 
                 // See if the selected block is part of the same portal as is stored.
-                boolean samePortal = itemData != null && Utils.areBothPointsConnected(itemData.pos(), itemData.dim(), pos, world.getRegistryKey(), Blocks.NETHER_PORTAL);
+                Direction.Axis axis = (targetedBlockState.getOrEmpty(Properties.HORIZONTAL_AXIS).isEmpty() ? targetedBlock.getDefaultState().get(Properties.HORIZONTAL_AXIS) : targetedBlockState.get(Properties.HORIZONTAL_AXIS)).equals(Direction.Axis.X) ? Direction.Axis.Z : Direction.Axis.X;
+                boolean samePortal = itemData != null && Utils.areBothPointsConnected(itemData.pos(), itemData.dim(), pos, world.getRegistryKey(), Blocks.NETHER_PORTAL, axis);
 
                 // This branch handles setting the first portal, and so runs when either no portal is set or a portal is set the selected block is a part of that portal, but not the saved block.
                 // This means you can change the saved block of the portal, and that the player never "uses" the item when that would do nothing.

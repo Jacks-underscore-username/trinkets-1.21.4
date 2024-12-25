@@ -121,7 +121,47 @@ public class Utils {
         return new BoundingBox(maxPos, minPos);
     }
 
+
     public static boolean areBothPointsConnected(BlockPos pos1, RegistryKey<World> dim1, BlockPos pos2, RegistryKey<World> dim2, Block block) {
+        return areBothPointsConnected(pos1, dim1, pos2, dim2, block, new BlockPos[]{
+                new BlockPos(1, 0, 0),
+                new BlockPos(-1, 0, 0),
+                new BlockPos(0, 1, 0),
+                new BlockPos(0, -1, 0),
+                new BlockPos(0, 0, 1),
+                new BlockPos(0, 0, -1)
+        });
+    }
+
+    public static boolean areBothPointsConnected(BlockPos pos1, RegistryKey<World> dim1, BlockPos pos2, RegistryKey<World> dim2, Block block, Direction.Axis excludedAxis) {
+        if (excludedAxis.equals(Direction.Axis.X)) {
+            return areBothPointsConnected(pos1, dim1, pos2, dim2, block, new BlockPos[]{
+                    new BlockPos(0, 1, 0),
+                    new BlockPos(0, -1, 0),
+                    new BlockPos(0, 0, 1),
+                    new BlockPos(0, 0, -1)
+            });
+        }
+        if (excludedAxis.equals(Direction.Axis.Y)) {
+            return areBothPointsConnected(pos1, dim1, pos2, dim2, block, new BlockPos[]{
+                    new BlockPos(1, 0, 0),
+                    new BlockPos(-1, 0, 0),
+                    new BlockPos(0, 0, 1),
+                    new BlockPos(0, 0, -1)
+            });
+        }
+        if (excludedAxis.equals(Direction.Axis.Z)) {
+            return areBothPointsConnected(pos1, dim1, pos2, dim2, block, new BlockPos[]{
+                    new BlockPos(1, 0, 0),
+                    new BlockPos(-1, 0, 0),
+                    new BlockPos(0, 1, 0),
+                    new BlockPos(0, -1, 0)
+            });
+        }
+        throw new RuntimeException("Invalid axis");
+    }
+
+    public static boolean areBothPointsConnected(BlockPos pos1, RegistryKey<World> dim1, BlockPos pos2, RegistryKey<World> dim2, Block block, BlockPos[] lookOffsets) {
         if (!dim1.equals(dim2)) {
             return false;
         }
@@ -129,19 +169,11 @@ public class Utils {
         ArrayList<BlockPos> scannedPoints = new ArrayList<>();
         ArrayList<BlockPos> pointsToScan = new ArrayList<>();
         pointsToScan.add(pos2);
-        BlockPos[] offsets = {
-                new BlockPos(1, 0, 0),
-                new BlockPos(-1, 0, 0),
-                new BlockPos(0, 1, 0),
-                new BlockPos(0, -1, 0),
-                new BlockPos(0, 0, 1),
-                new BlockPos(0, 0, -1),
-        };
         while (!pointsToScan.isEmpty()) {
             BlockPos point = pointsToScan.removeFirst();
             if (point.equals(pos1)) return true;
             scannedPoints.add(point);
-            for (var offset : offsets) {
+            for (var offset : lookOffsets) {
                 BlockPos newPoint = point.add(offset);
                 if (!scannedPoints.contains(newPoint)) {
                     assert world != null;
@@ -158,13 +190,6 @@ public class Utils {
         fillArea(world, block.getDefaultState(), bounds, entitySetter);
     }
 
-    /**
-     * Replaces each block with air, then replaces with the provided state
-     * @param world
-     * @param state
-     * @param bounds
-     * @param entitySetter
-     */
     public static void fillArea(World world, BlockState state, BoundingBox bounds, @Nullable Consumer<BlockEntity> entitySetter) {
         for (var x = bounds.min.getX(); x <= bounds.max.getX(); x++) {
             for (var y = bounds.min.getY(); y <= bounds.max.getY(); y++) {
@@ -181,10 +206,10 @@ public class Utils {
     }
 
     /**
-     * @param hue 0-360
+     * @param hue        0-360
      * @param saturation 0-1
-     * @param lightness 0-1
-     * @return
+     * @param lightness  0-1
+     * @return The color in RGB format as an int 0 - 256^3-1
      */
     public static int hslToRgb(double hue, double saturation, double lightness) {
         if (hue < 0 || hue > 360 || saturation < 0 || saturation > 1 || lightness < 0 || lightness > 1) {

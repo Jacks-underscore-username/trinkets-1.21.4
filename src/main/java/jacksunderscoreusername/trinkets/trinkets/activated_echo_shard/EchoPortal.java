@@ -72,7 +72,8 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         assert otherBlockEntity != null;
 
         // If the other portal's block entity is linked with a portal that is not this portal, destroy this portal.
-        if (!Utils.areBothPointsConnected(pos, world.getRegistryKey(), otherBlockEntity.teleportPos, RegistryKey.of(RegistryKeys.WORLD, otherBlockEntity.dimension), Setup.ECHO_PORTAL)) {
+        Direction.Axis axis = (targetPortalBlock.getOrEmpty(Properties.HORIZONTAL_AXIS).isEmpty() ? targetPortalBlock.getBlock().getDefaultState().get(Properties.HORIZONTAL_AXIS) : targetPortalBlock.get(Properties.HORIZONTAL_AXIS));
+        if (!Utils.areBothPointsConnected(pos, world.getRegistryKey(), otherBlockEntity.teleportPos, RegistryKey.of(RegistryKeys.WORLD, otherBlockEntity.dimension), Setup.ECHO_PORTAL, axis)) {
             world.setBlockState(pos, Blocks.AIR.getDefaultState());
             return;
         }
@@ -101,7 +102,6 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         ServerWorld teleportWorld = world.getServer().getWorld(RegistryKey.of(RegistryKeys.WORLD, info.dimension));
         BlockState otherPortal = teleportWorld.getBlockState(info.teleportPos);
         BlockState thisPortal = world.getBlockState(pos);
-        Main.LOGGER.info(String.valueOf(info.teleportPos));
 
         TeleportTarget.PostDimensionTransition postDimensionTransition = TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET.then(entityX -> entityX.addPortalChunkTicketAt(info.teleportPos));
 
