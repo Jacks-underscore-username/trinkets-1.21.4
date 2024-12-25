@@ -118,7 +118,7 @@ public class ActivatedEchoShard extends Trinket {
 
                             portalEntity.colorInt = color;
                             portalEntity.dimension = world.getRegistryKey().getValue();
-                            portalEntity.teleportPos = bounds2.max;
+                            portalEntity.teleportPos = bounds1.max;
                             portalEntity.checkForNetherPortal = true;
                             portalEntity.markDirty();
                         });

@@ -95,6 +95,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         ServerWorld teleportWorld = world.getServer().getWorld(RegistryKey.of(RegistryKeys.WORLD, info.dimension));
         BlockState otherPortal = teleportWorld.getBlockState(info.teleportPos);
         BlockState thisPortal = world.getBlockState(pos);
+        Main.LOGGER.info(String.valueOf(info.teleportPos));
 
         TeleportTarget.PostDimensionTransition postDimensionTransition = TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET.then(entityX -> entityX.addPortalChunkTicketAt(info.teleportPos));
 
