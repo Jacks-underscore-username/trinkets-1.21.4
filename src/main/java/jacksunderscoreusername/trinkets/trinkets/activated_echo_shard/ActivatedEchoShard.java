@@ -11,13 +11,16 @@ import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.sound.SoundEvents;
+import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -84,47 +87,37 @@ public class ActivatedEchoShard extends Trinket {
                         if (!world.isClient) {
 
                             // The bounding box of the stored portal.
-                            Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL);
+                            Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL, Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
                             // The bounding box of the currently selected portal.
-                            Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL);
+                            Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL, world.getBlockState(pos).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
 
                             // Generate a random color for the portal pair.
                             int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
 
+
                             // TODO: Make this better.
-                            // Place the portal blocks for the stored portal location.
-                            Utils.fillArea(Main.server.getWorld(itemData.dim()), SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1);
-                            // Place the portal blocks for the selected portal.
-                            Utils.fillArea(world, SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2);
+                            // Place the portal blocks for the stored portal location. Then set the data in each blockEntity in the selected portal.
+                            Utils.fillArea(Main.server.getWorld(itemData.dim()), SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1, blockEntity -> {
+                                EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
+                                assert blockEntity != null;
 
-                            // Set the data in each blockEntity in the stored portal's portal.
-                            for (var x = bounds1.min.getX(); x <= bounds1.max.getX(); x++) {
-                                for (var y = bounds1.min.getY(); y <= bounds1.max.getY(); y++) {
-                                    for (var z = bounds1.min.getZ(); z <= bounds1.max.getZ(); z++) {
-                                        EchoPortalBlockEntity blockEntity = (EchoPortalBlockEntity) Main.server.getWorld(itemData.dim()).getBlockEntity(new BlockPos(x, y, z));
-                                        assert blockEntity != null;
-                                        blockEntity.colorInt = color;
-                                        blockEntity.dimension = world.getRegistryKey().getValue();
-                                        blockEntity.teleportPos = bounds2.max;
-                                        blockEntity.markDirty();
-                                    }
-                                }
-                            }
+                                portalEntity.colorInt = color;
+                                portalEntity.dimension = world.getRegistryKey().getValue();
+                                portalEntity.teleportPos = bounds2.max;
+                                portalEntity.checkForNetherPortal = true;
+                                portalEntity.markDirty();
+                            });
+                            // Place the portal blocks for the selected portal. Then set the data in each blockEntity in the stored portal's portal.
+                            Utils.fillArea(world, SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2, blockEntity -> {
+                                EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
+                                assert blockEntity != null;
 
-                            // Set the data in each blockEntity in the selected portal.
-                            for (var x = bounds2.min.getX(); x <= bounds2.max.getX(); x++) {
-                                for (var y = bounds2.min.getY(); y <= bounds2.max.getY(); y++) {
-                                    for (var z = bounds2.min.getZ(); z <= bounds2.max.getZ(); z++) {
-                                        EchoPortalBlockEntity blockEntity = (EchoPortalBlockEntity) Main.server.getWorld(itemData.dim()).getBlockEntity(new BlockPos(x, y, z));
-                                        assert blockEntity != null;
-                                        blockEntity.colorInt = color;
-                                        blockEntity.dimension = itemData.dim().getValue();
-                                        blockEntity.teleportPos = bounds1.max;
-                                        blockEntity.markDirty();
-
-                                    }
-                                }
-                            }
+                                portalEntity.colorInt = color;
+                                portalEntity.dimension = world.getRegistryKey().getValue();
+                                portalEntity.teleportPos = bounds2.max;
+                                portalEntity.checkForNetherPortal = true;
+                                portalEntity.markDirty();
+                            });
                         }
                     } else {
                         // This branch runs when there is no portal at the stored location / dimension.

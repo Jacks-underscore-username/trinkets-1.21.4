@@ -3,11 +3,18 @@ package jacksunderscoreusername.trinkets;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
+import net.minecraft.block.entity.BlockEntity;
+import net.minecraft.nbt.NbtCompound;
 import net.minecraft.registry.RegistryKey;
+import net.minecraft.util.Clearable;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.world.BlockLocating;
 import net.minecraft.world.World;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 public class Utils {
     public static class BoundingBox {
@@ -73,6 +80,47 @@ public class Utils {
         return new BoundingBox(new BlockPos(maxX, maxY, maxZ), new BlockPos(minX, minY, minZ));
     }
 
+    public static BoundingBox getConnectedBlocksBoundingBox(RegistryKey<World> dim, BlockPos startPos, Block block, Direction.Axis primaryAxis, Direction.Axis secondaryAxis) {
+        World world = Main.server.getWorld(dim);
+        BlockPos.Mutable minPos = startPos.mutableCopy();
+        BlockPos.Mutable maxPos = startPos.mutableCopy();
+
+        //This turns the Axis into the positive and negative directions. This allows us to search in those two directions.
+        // if the axis = X then it would move in both the negative and positive X axis.
+        Direction searchDirectionPrimaryNegative = Direction.get(Direction.AxisDirection.NEGATIVE, primaryAxis);
+        Direction searchDirectionPrimaryPositive = searchDirectionPrimaryNegative.getOpposite();
+        Direction searchDirectionSecondaryNegative = Direction.get(Direction.AxisDirection.NEGATIVE, secondaryAxis);
+        Direction searchDirectionSecondaryPositive = searchDirectionSecondaryNegative.getOpposite();
+
+        //TODO: optimization is possible here by moving diagonally and then only doing an end check for the directions to see where the block ends.
+        //Move minPos to the minimum main axis direction.
+        while (world.getBlockState(minPos).getBlock().equals(block)) {
+            minPos.move(searchDirectionPrimaryNegative);
+        }
+        minPos.move(searchDirectionPrimaryPositive);
+
+        //Move minPos to the minimum secondary axis direction.
+        while (world.getBlockState(minPos).getBlock().equals(block)) {
+            minPos.move(searchDirectionSecondaryNegative);
+        }
+        minPos.move(searchDirectionSecondaryPositive);
+
+
+        //Move maxPos to the maximum main axis direction.
+        while (world.getBlockState(maxPos).getBlock().equals(block)) {
+            maxPos.move(searchDirectionPrimaryPositive);
+        }
+        maxPos.move(searchDirectionPrimaryNegative);
+
+        //Move maxPos to the maximum secondary axis direction.
+        while (world.getBlockState(maxPos).getBlock().equals(block)) {
+            maxPos.move(searchDirectionSecondaryPositive);
+        }
+        maxPos.move(searchDirectionSecondaryNegative);
+
+        return new BoundingBox(maxPos, minPos);
+    }
+
     public static boolean areBothPointsConnected(BlockPos pos1, RegistryKey<World> dim1, BlockPos pos2, RegistryKey<World> dim2, Block block) {
         if (!dim1.equals(dim2)) {
             return false;
@@ -106,8 +154,8 @@ public class Utils {
         return false;
     }
 
-    public static void fillArea(World world, Block block, BoundingBox bounds) {
-        fillArea(world, block.getDefaultState(), bounds);
+    public static void fillArea(World world, Block block, BoundingBox bounds, @Nullable Consumer<BlockEntity> entitySetter) {
+        fillArea(world, block.getDefaultState(), bounds, entitySetter);
     }
 
     /**
@@ -115,19 +163,18 @@ public class Utils {
      * @param world
      * @param state
      * @param bounds
+     * @param entitySetter
      */
-    public static void fillArea(World world, BlockState state, BoundingBox bounds) {
+    public static void fillArea(World world, BlockState state, BoundingBox bounds, @Nullable Consumer<BlockEntity> entitySetter) {
         for (var x = bounds.min.getX(); x <= bounds.max.getX(); x++) {
             for (var y = bounds.min.getY(); y <= bounds.max.getY(); y++) {
                 for (var z = bounds.min.getZ(); z <= bounds.max.getZ(); z++) {
-                    world.setBlockState(new BlockPos(x, y, z), Blocks.AIR.getDefaultState());
-                }
-            }
-        }
-        for (var x = bounds.min.getX(); x <= bounds.max.getX(); x++) {
-            for (var y = bounds.min.getY(); y <= bounds.max.getY(); y++) {
-                for (var z = bounds.min.getZ(); z <= bounds.max.getZ(); z++) {
-                    world.setBlockState(new BlockPos(x, y, z), state);
+                    BlockPos pos = new BlockPos(x, y, z);
+                    world.setBlockState(pos, state);
+
+                    if (entitySetter != null) {
+                        entitySetter.accept(world.getBlockEntity(pos));
+                    }
                 }
             }
         }

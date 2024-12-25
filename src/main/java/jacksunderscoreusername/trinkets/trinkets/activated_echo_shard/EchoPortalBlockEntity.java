@@ -11,12 +11,12 @@ import net.minecraft.world.World;
 
 // The blockEntity used for the echoPortal block to store the linked portal data.
 public class EchoPortalBlockEntity extends BlockEntity {
-
     // Sets the default target for a portal since it has to have one set, however the color of the non setup portal will be black showing that it was never setup.
     public Identifier dimension = World.OVERWORLD.getValue();
     public BlockPos teleportPos = BlockPos.ORIGIN;
     // Color is stored as an RGB value, so 0 - 256**3-2
     public int colorInt = 0;
+    public boolean checkForNetherPortal = false;
 
     public EchoPortalBlockEntity(BlockPos pos, BlockState state) {
         super(SetupBlocks.ECHO_PORTAL_BLOCK_ENTITY, pos, state);
@@ -28,6 +28,7 @@ public class EchoPortalBlockEntity extends BlockEntity {
         dimension = Identifier.tryParse(nbt.getString("dimension"));
         teleportPos = BlockPos.fromLong(nbt.getLong("pos"));
         colorInt = nbt.getInt("color");
+        checkForNetherPortal = nbt.getBoolean("checkForNetherPortal");
     }
 
     @Override
@@ -35,6 +36,7 @@ public class EchoPortalBlockEntity extends BlockEntity {
         nbt.putString("dimension", dimension.toString());
         nbt.putLong("pos", teleportPos.asLong());
         nbt.putInt("color", colorInt);
+        nbt.putBoolean("checkForNetherPortal", checkForNetherPortal);
     }
 
     @Override

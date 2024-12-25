@@ -113,9 +113,14 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         Direction.Axis axis = direction.getAxis();
         Direction.Axis axis2 = state.get(Properties.HORIZONTAL_AXIS);
         boolean bl = axis2 != axis && axis.isHorizontal();
-        return !bl && !neighborState.isOf(this) && !NetherPortal.getOnAxis(world, pos, axis2).wasAlreadyValid()
-                ? Blocks.AIR.getDefaultState()
-                : super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+
+        if (!((EchoPortalBlockEntity) world.getBlockEntity(pos)).checkForNetherPortal) {
+            return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        } else {
+            return !bl && !neighborState.isOf(this) && !NetherPortal.getOnAxis(world, pos, axis2).wasAlreadyValid()
+                    ? Blocks.AIR.getDefaultState()
+                    : super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
+        }
     }
 
     @Override
