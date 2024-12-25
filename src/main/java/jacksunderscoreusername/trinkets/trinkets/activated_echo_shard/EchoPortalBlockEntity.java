@@ -10,20 +10,21 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+// The blockEntity used for the echoPortal block to store the linked portal data.
 public class EchoPortalBlockEntity extends BlockEntity {
+
+    // Sets the default target for a portal since it has to have one set, however the color of the non setup portal will be black showing that it was never setup.
     public Identifier dimension = World.OVERWORLD.getValue();
     public BlockPos teleportPos = BlockPos.ORIGIN;
+    // Color is stored as an RGB value, so 0 - 256**3-2
     public int colorInt = 0;
     public static int defaultColor = 0;
-
-    public EchoPortalBlockEntity(BlockEntityType<? extends EchoPortalBlockEntity> type, BlockPos pos, BlockState state) {
-        super(type, pos, state);
-    }
 
     public EchoPortalBlockEntity(BlockPos pos, BlockState state) {
         super(SetupBlocks.ECHO_PORTAL_BLOCK_ENTITY, pos, state);
     }
 
+    // Used to store the data between world reloads.
     @Override
     protected void readNbt(NbtCompound nbt, RegistryWrapper.WrapperLookup registries) {
         dimension = Identifier.tryParse(nbt.getString("dimension"));
@@ -46,5 +47,11 @@ public class EchoPortalBlockEntity extends BlockEntity {
     @Override
     public NbtCompound toInitialChunkDataNbt(RegistryWrapper.WrapperLookup registries) {
         return this.createNbtWithIdentifyingData(registries);
+    }
+
+    // Used for settings the portal's color elsewhere.
+    @Override
+    public Object getRenderData() {
+        return this.colorInt;
     }
 }

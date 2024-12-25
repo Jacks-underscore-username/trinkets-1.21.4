@@ -47,8 +47,8 @@ public class ActivatedEchoShard extends Trinket {
         // Setup all the used on portal interactions.
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
             ItemStack itemStack = player.getStackInHand(hand);
-            Block targetedBlock = world.getBlockState(hitResult.getBlockPos()).getBlock();
             BlockPos pos = hitResult.getBlockPos();
+            Block targetedBlock = world.getBlockState(pos).getBlock();
 
             // Since this event triggers for both hands it needs to check and make sure that the current hand is the one holding the item.
             // It needs to make sure the player isn't sneaking since that is tied to other actions.
@@ -58,17 +58,17 @@ public class ActivatedEchoShard extends Trinket {
                 StoredPortalComponent.StoredPortal itemData = itemStack.get(STORED_PORTAL);
 
                 // See if the selected block is part of the same portal as is stored.
-                boolean samePortal = itemData != null && Utils.areBothPointsConnected(itemData.pos(), itemData.dim(), hitResult.getBlockPos(), world.getRegistryKey(), Blocks.NETHER_PORTAL);
+                boolean samePortal = itemData != null && Utils.areBothPointsConnected(itemData.pos(), itemData.dim(), pos, world.getRegistryKey(), Blocks.NETHER_PORTAL);
 
                 // This branch handles setting the first portal, and so runs when either no portal is set or a portal is set the selected block is a part of that portal, but not the saved block.
                 // This means you can change the saved block of the portal, and that the player never "uses" the item when that would do nothing.
-                if (itemData == null || !itemData.hasPortal() || (!itemData.pos().equals(hitResult.getBlockPos())) && samePortal) {
+                if (itemData == null || !itemData.hasPortal() || (!itemData.pos().equals(pos)) && samePortal) {
 
                     // Notify the player.
                     player.playSound(SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1.0F, 1.0F);
 
                     // Save the data in the item of the selected block's location and dimension.
-                    itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(hitResult.getBlockPos(), world.getRegistryKey(), true));
+                    itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(pos, world.getRegistryKey(), true));
 
                     // Returns success so that the player swings and no further listeners fire.
                     return ActionResult.SUCCESS;
@@ -86,7 +86,7 @@ public class ActivatedEchoShard extends Trinket {
                             // The bounding box of the stored portal.
                             Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL);
                             // The bounding box of the currently selected portal.
-                            Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), hitResult.getBlockPos(), Blocks.NETHER_PORTAL);
+                            Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL);
 
                             // Generate a random color for the portal pair.
                             int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
@@ -99,7 +99,7 @@ public class ActivatedEchoShard extends Trinket {
                             // Place the portal blocks for the stored portal location.
                             Utils.fillArea(Main.server.getWorld(itemData.dim()), SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1);
                             // Place the portal blocks for the selected portal.
-                            Utils.fillArea(world, SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(hitResult.getBlockPos())), bounds2);
+                            Utils.fillArea(world, SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2);
 
                             // Set the data in each blockEntity in the stored portal's portal.
                             for (var x = bounds1.min.getX(); x <= bounds1.max.getX(); x++) {
@@ -145,7 +145,6 @@ public class ActivatedEchoShard extends Trinket {
                     return ActionResult.SUCCESS;
                 }
             }
-
 
             // Returns pass so that the player does not swing their arm and the next event listener can run.
             return ActionResult.PASS;

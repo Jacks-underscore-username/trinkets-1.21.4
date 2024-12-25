@@ -11,6 +11,7 @@ import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 
+// A component is needed to store data in an item, so this is the component used for the activated echo shard item, it stores the position of one block of the portal and the dimension of the portal, as well as whether or not it has a portal saved.
 public class StoredPortalComponent {
     public record StoredPortal(BlockPos pos, RegistryKey<World> dim, boolean hasPortal) {
         public static final Codec<StoredPortal> CODEC = RecordCodecBuilder.create(builder -> builder.group(

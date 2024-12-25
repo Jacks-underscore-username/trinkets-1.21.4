@@ -22,15 +22,17 @@ import net.minecraft.world.dimension.NetherPortal;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
-
+// It has to extend BlockWithEntity to have block data, but also needs to implement portal to be used as a portal without doing everything itself.
 public class EchoPortal extends BlockWithEntity implements Portal {
     public static final MapCodec<EchoPortal> CODEC = createCodec(EchoPortal::new);
 
     public EchoPortal(Settings settings) {
         super(settings);
+        // It needs a default state, so it just chooses a direction and has that as default.
         this.setDefaultState(this.stateManager.getDefaultState().with(Properties.HORIZONTAL_AXIS, Direction.Axis.X));
     }
 
+    // Make entities treat this like a portal.
     @Override
     public void onEntityCollision(BlockState state, World world, BlockPos pos, Entity entity) {
         if (entity.canUsePortals(false)) {
@@ -38,6 +40,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         }
     }
 
+    // Copied from the netherPortalBlock code, sets the amount of time the entity has to be in the portal before they teleport.
     @Override
     public int getPortalDelay(ServerWorld world, Entity entity) {
         return entity instanceof PlayerEntity playerEntity
@@ -49,6 +52,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
                 : 0;
     }
 
+    // A whole ton of stuff to make the portal portal.
     @Override
     public @Nullable TeleportTarget createTeleportTarget(ServerWorld world, Entity entity, BlockPos pos) {
         EchoPortalBlockEntity info = ((EchoPortalBlockEntity) world.getBlockEntity(pos));
@@ -57,16 +61,16 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         BlockState otherPortal = teleportWorld.getBlockState(info.teleportPos);
         BlockState thisPortal = world.getBlockState(pos);
 
-        TeleportTarget.PostDimensionTransition postDimensionTransition = TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET.then(entityx -> entityx.addPortalChunkTicketAt(info.teleportPos));
+        TeleportTarget.PostDimensionTransition postDimensionTransition = TeleportTarget.SEND_TRAVEL_THROUGH_PORTAL_PACKET.then(entityX -> entityX.addPortalChunkTicketAt(info.teleportPos));
 
         Direction.Axis thisAxis = thisPortal.getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X);
         BlockLocating.Rectangle thisRectangle = BlockLocating.getLargestRectangle(
-                pos, thisAxis, 21, Direction.Axis.Y, 21, posx -> world.getBlockState(posx) == thisPortal
+                pos, thisAxis, 21, Direction.Axis.Y, 21, posX -> world.getBlockState(posX) == thisPortal
         );
 
         Direction.Axis otherAxis = otherPortal.getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X);
         BlockLocating.Rectangle exitPortalRectangle = BlockLocating.getLargestRectangle(
-                info.teleportPos, otherAxis, 21, Direction.Axis.Y, 21, posx -> teleportWorld.getBlockState(posx) == otherPortal
+                info.teleportPos, otherAxis, 21, Direction.Axis.Y, 21, posX -> teleportWorld.getBlockState(posX) == otherPortal
         );
 
         return getExitPortalTarget(teleportWorld, exitPortalRectangle, thisAxis, otherAxis, entity.positionInPortal(thisAxis, thisRectangle), entity, postDimensionTransition);
@@ -137,6 +141,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         builder.add(Properties.HORIZONTAL_AXIS);
     }
 
+    // Stuff to make blockEntities work.
     @Override
     protected MapCodec<? extends BlockWithEntity> getCodec() {
         return CODEC;
@@ -147,6 +152,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         return new EchoPortalBlockEntity(pos, state);
     }
 
+    // Make it so it looks like you're in a portal when you're in the portal.
     public Effect getPortalEffect() {
         return Effect.CONFUSION;
     }
