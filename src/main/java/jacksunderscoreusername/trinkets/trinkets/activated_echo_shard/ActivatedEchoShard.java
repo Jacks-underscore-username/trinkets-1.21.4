@@ -5,13 +5,15 @@ import jacksunderscoreusername.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.TrinketCreationHandlers;
 import jacksunderscoreusername.trinkets.Utils;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
+import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.state.property.Properties;
 import net.minecraft.text.Text;
@@ -24,6 +26,10 @@ import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+// TODO: Sounds are broken.
 
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.StoredPortalComponent.STORED_PORTAL;
 
@@ -49,6 +55,9 @@ public class ActivatedEchoShard extends Trinket {
 
         // Setup all the used on portal interactions.
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
+            if (world.isClient) {
+                return ActionResult.PASS;
+            }
             ItemStack itemStack = player.getStackInHand(hand);
             BlockPos pos = hitResult.getBlockPos();
             Block targetedBlock = world.getBlockState(pos).getBlock();
@@ -68,69 +77,64 @@ public class ActivatedEchoShard extends Trinket {
                 if (itemData == null || !itemData.hasPortal() || (!itemData.pos().equals(pos)) && samePortal) {
 
                     // Notify the player.
-                    player.playSound(SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1.0F, 1.0F);
+                    world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
 
                     // Save the data in the item of the selected block's location and dimension.
                     itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(pos, world.getRegistryKey(), true));
 
                     // Returns success so that the player swings and no further listeners fire.
+                    ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(player.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
                     return ActionResult.SUCCESS;
                 } else if (!samePortal) {
                     // This branch handles trying to link two portals.
 
-                    // TODO: make this work when the location is not loaded in the client.
                     // Check that a portal block still exists at the saved location / dimension in the item.
                     if (Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getBlock().equals(Blocks.NETHER_PORTAL)) {
-                        player.playSound(SoundEvents.ENTITY_WARDEN_SONIC_BOOM, 1.0F, 0.75F);
+                        world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_SONIC_BOOM, SoundCategory.PLAYERS, 1.0F, 0.75F);
 
-                        // This branch handles creating the portals and so only runs on the server.
-                        if (!world.isClient) {
+                        // The bounding box of the stored portal.
+                        Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL, Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
+                        // The bounding box of the currently selected portal.
+                        Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL, world.getBlockState(pos).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
 
-                            // The bounding box of the stored portal.
-                            Utils.BoundingBox bounds1 = Utils.getConnectedBlocksBoundingBox(itemData.dim(), itemData.pos(), Blocks.NETHER_PORTAL, Main.server.getWorld(itemData.dim()).getBlockState(itemData.pos()).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
-                            // The bounding box of the currently selected portal.
-                            Utils.BoundingBox bounds2 = Utils.getConnectedBlocksBoundingBox(world.getRegistryKey(), pos, Blocks.NETHER_PORTAL, world.getBlockState(pos).getOrEmpty(Properties.HORIZONTAL_AXIS).orElse(Direction.Axis.X), Direction.Axis.Y);
+                        // Generate a random color for the portal pair.
+                        int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
 
-                            // Generate a random color for the portal pair.
-                            int color = Utils.hslToRgb(Math.random() * 360, 1, Math.random() * .5 + .25);
+                        // Place the portal blocks for the stored portal location. Then set the data in each blockEntity in the selected portal.
+                        Utils.fillArea(Main.server.getWorld(itemData.dim()), Setup.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1, blockEntity -> {
+                            EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
+                            assert blockEntity != null;
 
+                            portalEntity.colorInt = color;
+                            portalEntity.dimension = world.getRegistryKey().getValue();
+                            portalEntity.teleportPos = bounds2.max;
+                            portalEntity.checkForNetherPortal = true;
+                            portalEntity.markDirty();
+                        });
+                        // Place the portal blocks for the selected portal. Then set the data in each blockEntity in the stored portal's portal.
+                        Utils.fillArea(world, Setup.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2, blockEntity -> {
+                            EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
+                            assert blockEntity != null;
 
-                            // TODO: Make this better.
-                            // Place the portal blocks for the stored portal location. Then set the data in each blockEntity in the selected portal.
-                            Utils.fillArea(Main.server.getWorld(itemData.dim()), SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(itemData.pos())), bounds1, blockEntity -> {
-                                EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
-                                assert blockEntity != null;
-
-                                portalEntity.colorInt = color;
-                                portalEntity.dimension = world.getRegistryKey().getValue();
-                                portalEntity.teleportPos = bounds2.max;
-                                portalEntity.checkForNetherPortal = true;
-                                portalEntity.markDirty();
-                            });
-                            // Place the portal blocks for the selected portal. Then set the data in each blockEntity in the stored portal's portal.
-                            Utils.fillArea(world, SetupBlocks.ECHO_PORTAL.getStateWithProperties(world.getBlockState(pos)), bounds2, blockEntity -> {
-                                EchoPortalBlockEntity portalEntity = (EchoPortalBlockEntity) blockEntity;
-                                assert blockEntity != null;
-
-                                portalEntity.colorInt = color;
-                                portalEntity.dimension = world.getRegistryKey().getValue();
-                                portalEntity.teleportPos = bounds2.max;
-                                portalEntity.checkForNetherPortal = true;
-                                portalEntity.markDirty();
-                            });
-                        }
+                            portalEntity.colorInt = color;
+                            portalEntity.dimension = world.getRegistryKey().getValue();
+                            portalEntity.teleportPos = bounds2.max;
+                            portalEntity.checkForNetherPortal = true;
+                            portalEntity.markDirty();
+                        });
                     } else {
                         // This branch runs when there is no portal at the stored location / dimension.
 
                         // Notify the player.
                         player.sendMessage(Text.literal("The other portal is broken").formatted(Formatting.RED), true);
-                        player.playSound(SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1.0F, 1.0F);
+                        world.playSound(null, pos, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
                     }
 
                     // Remove the stored data from the item regardless of whether a portal was created or not.
                     itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
 
                     // Returns success so that the player swings and no further listeners fire.
+                    ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(player.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
                     return ActionResult.SUCCESS;
                 }
             }
@@ -140,12 +144,15 @@ public class ActivatedEchoShard extends Trinket {
         });
 
         // Links the echo portal block and block entity.
-        SetupBlocks.initialize();
+        Setup.initialize();
     }
 
     // Add shift right click detection to clear the stored portal (if any)
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (world.isClient) {
+            return ActionResult.PASS;
+        }
         ItemStack itemStack = user.getStackInHand(hand);
 
         // Since this event triggers for both hands it needs to check and make sure that the current hand is the one holding the item.
@@ -156,12 +163,13 @@ public class ActivatedEchoShard extends Trinket {
             if (user.isSneaking() && itemData != null && itemData.hasPortal()) {
 
                 // Notify the user.
-                user.playSound(SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1.0F, 1.0F);
+                world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
 
                 // Remove the saved portal data from the item.
                 itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
 
                 // Returns success so that the player swings and no further listeners fire.
+                ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
                 return ActionResult.SUCCESS;
             }
         }

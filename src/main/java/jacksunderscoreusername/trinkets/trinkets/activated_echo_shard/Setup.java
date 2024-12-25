@@ -17,7 +17,7 @@ import net.minecraft.util.Identifier;
 import java.util.function.Function;
 
 // Handles registering the echoPortal block / block entity.
-public class SetupBlocks {
+public class Setup {
     public static final EchoPortal ECHO_PORTAL = registerBlock("echo_portal", EchoPortal::new, Block.Settings.create().noCollision().strength(-1.0F).sounds(BlockSoundGroup.GLASS).luminance(state -> 11).pistonBehavior(PistonBehavior.BLOCK));
 
     private static <T extends Block> T registerBlock(String path, Function<Block.Settings, T> factory, Block.Settings settings) {
