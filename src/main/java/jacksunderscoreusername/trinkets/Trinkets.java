@@ -1,6 +1,7 @@
 package jacksunderscoreusername.trinkets;
 
 import com.google.common.collect.ImmutableList;
+import jacksunderscoreusername.trinkets.trinkets.gravity_disruptor.GravityDisruptor;
 import jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.ActivatedEchoShard;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.player.PlayerEntity;
@@ -22,9 +23,9 @@ public class Trinkets {
     public static final HashMap<Rarity, Formatting> rarityColors = new HashMap<>();
 
     public static final Trinket ACTIVATED_ECHO_SHARD = register(ActivatedEchoShard.id, ActivatedEchoShard::new, ActivatedEchoShard.getSettings());
-//    public static final Trinket SHULKER_SWARM = register(ShulkerSwarm.id, ShulkerSwarm::new, ShulkerSwarm.getSettings());
+    public static final Trinket GRAVITY_DISRUPTOR = register(GravityDisruptor.id, GravityDisruptor::new, GravityDisruptor.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR};
 
     public static Trinket register(String id, Function<Item.Settings, Item> factory, Item.Settings settings) {
 
@@ -119,11 +120,21 @@ public class Trinkets {
                         if (state && data.interference() == 1) {
                             item.set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(data.level(), data.UUID(), 0));
                         }
+
+                        CooldownDataComponent.CooldownData cooldownData = item.get(CooldownDataComponent.COOLDOWN);
+                        if (cooldownData != null) {
+                            int timeLeft = cooldownData.totalTime() - (now - cooldownData.startTime()) / 20;
+                            if (timeLeft <= 0) {
+                                item.remove(CooldownDataComponent.COOLDOWN);
+                            } else if (timeLeft < cooldownData.timeLeft()) {
+                                item.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(cooldownData.startTime(), cooldownData.totalTime(), timeLeft));
+                            }
+                        }
                     }
                 }
             }
         });
-
+        CooldownDataComponent.initialize();
         TrinketsItemGroup.initialize();
         for (var trinket : AllTrinkets) {
             trinket.initialize();

@@ -6,9 +6,6 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.util.Hand;
-import org.lwjgl.openal.LOKIIMAADPCM;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.Setup.ECHO_PORTAL;
 

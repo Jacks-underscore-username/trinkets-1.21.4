@@ -82,7 +82,7 @@ abstract public class Trinket extends Item {
         ArrayList<StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry> history = Main.state.data.playerTrinketUseHistory.computeIfAbsent(user.getUuid(), k -> new ArrayList<>());
         history.add(new StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry(Main.server.getTicks(), UUID.fromString(Objects.requireNonNull(trinket.get(TRINKET_DATA)).UUID())));
         Main.state.data.playerTrinketUseHistory.put(user.getUuid(), history);
-        if (trinket.getDamage() + 1 >= trinket.getMaxDamage()) {
+        if (!user.isCreative() && trinket.getDamage() + 1 >= trinket.getMaxDamage()) {
             ((Trinket) trinket.getItem()).markRemoved(trinket);
         }
 
@@ -124,6 +124,7 @@ abstract public class Trinket extends Item {
             tooltip.add(Text.literal("from your other trinkets").formatted(Formatting.RED, Formatting.BOLD));
             return false;
         }
+        tooltip.add(Text.literal("Level "+data.level()).formatted(Formatting.ITALIC));
         return true;
     }
 

@@ -271,6 +271,6 @@ public class ActivatedEchoShard extends Trinket {
         }
 
         tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.DARK_PURPLE));
-        tooltip.add(Text.literal("Kill a warden while holding this to increase max range").formatted(Formatting.DARK_PURPLE, Formatting.ITALIC));
+        tooltip.add(Text.literal("Kill a warden while holding this to upgrade").formatted(Formatting.DARK_PURPLE, Formatting.ITALIC));
     }
 }

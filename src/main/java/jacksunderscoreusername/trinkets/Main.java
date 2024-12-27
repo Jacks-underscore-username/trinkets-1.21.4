@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 public class Main implements ModInitializer {
     public static final String MOD_ID = "trinkets";
@@ -36,7 +37,7 @@ public class Main implements ModInitializer {
 
         PayloadTypeRegistry.playS2C().register(ConfigPayload.ID, ConfigPayload.CODEC);
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server)->{
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             sender.sendPacket(new ConfigPayload(config.toJsonString()));
         });
     }
