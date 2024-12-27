@@ -1,6 +1,5 @@
-package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
+package jacksunderscoreusername.trinkets;
 
-import jacksunderscoreusername.trinkets.Main;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;

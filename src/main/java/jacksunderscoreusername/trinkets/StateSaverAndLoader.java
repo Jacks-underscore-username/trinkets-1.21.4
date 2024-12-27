@@ -10,7 +10,9 @@ import net.minecraft.world.World;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Objects;
+import java.util.UUID;
 
 public class StateSaverAndLoader extends PersistentState {
 
@@ -18,7 +20,31 @@ public class StateSaverAndLoader extends PersistentState {
         @Serial
         private static final long serialVersionUID = 4284636239471626404L;
 
-        public ArrayList<String> createdTrinkets = new ArrayList<>();
+        public HashMap<String, Integer> createdTrinkets = new HashMap<>();
+
+        public static class currentTrinketPlayerMapEntry implements Serializable {
+            public currentTrinketPlayerMapEntry(UUID player, int startTime) {
+                this.player = player;
+                this.startTime = startTime;
+            }
+
+            public UUID player;
+            public int startTime;
+        }
+
+        public static class playerTrinketUseHistoryEntry implements Serializable {
+            public playerTrinketUseHistoryEntry(int time, UUID itemUuid) {
+                this.time = time;
+                this.itemUuid = itemUuid;
+            }
+
+            public int time;
+            public UUID itemUuid;
+        }
+
+        public HashMap<UUID, StateSaverAndLoader.StoredData.currentTrinketPlayerMapEntry> currentTrinketPlayerMap = new HashMap<>();
+        public HashMap<UUID, UUID> claimedTrinketPlayerMap = new HashMap<>();
+        public HashMap<UUID, ArrayList<StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry>> playerTrinketUseHistory = new HashMap<>();
     }
 
     public StoredData data = new StoredData();

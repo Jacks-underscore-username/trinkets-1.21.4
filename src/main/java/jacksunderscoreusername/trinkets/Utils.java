@@ -5,6 +5,7 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.util.Clearable;
 import net.minecraft.util.math.BlockPos;
@@ -120,7 +121,6 @@ public class Utils {
 
         return new BoundingBox(maxPos, minPos);
     }
-
 
     public static boolean areBothPointsConnected(BlockPos pos1, RegistryKey<World> dim1, BlockPos pos2, RegistryKey<World> dim2, Block block) {
         return areBothPointsConnected(pos1, dim1, pos2, dim2, block, new BlockPos[]{
@@ -252,5 +252,57 @@ public class Utils {
         int blue = (int) Math.round((b + m) * 255);
 
         return (red << 16) | (green << 8) | blue;
+    }
+
+    public static String prettyTime(int timeInSeconds, boolean exact) {
+        int seconds = 0;
+        int minutes = 0;
+        int hours = 0;
+        if (timeInSeconds / 60 / 60 >= 1) {
+            hours += timeInSeconds / 60 / 60;
+            timeInSeconds = timeInSeconds % (60 * 60);
+        }
+        if (timeInSeconds / 60 >= 1) {
+            minutes += timeInSeconds / 60;
+            timeInSeconds = timeInSeconds % 60;
+        }
+        seconds += timeInSeconds;
+        int typeCount = 0;
+        if (seconds > 0) {
+            typeCount++;
+        }
+        if (minutes > 0) {
+            typeCount++;
+        }
+        if (hours > 0) {
+            typeCount++;
+        }
+        String out = "";
+        if (exact) {
+            if (hours > 0) {
+                out += hours + " hour" + (hours == 1 ? "" : "s");
+            }
+            if (minutes > 0) {
+                out += (typeCount == 2 ? hours > 0 ? " and " : "" : typeCount == 3 ? ", " : "") + minutes + " minute" + (minutes == 1 ? "" : "s");
+            }
+            if (seconds > 0) {
+                out += (typeCount == 2 ? minutes > 0 ? " and " : "" : typeCount == 3 ? ", and " : "") + seconds + " second" + (seconds == 1 ? "" : "s");
+            }
+        } else {
+            if (hours > 1 || (hours == 1 && minutes == 0)) {
+                out += hours + " hour" + (hours == 1 ? "" : "s");
+            } else if (hours == 1) {
+                out += hours + " hour";
+                out += minutes + " minute" + (minutes == 1 ? "" : "s");
+            } else if (minutes > 1 || (minutes == 1 && seconds == 0)) {
+                out += minutes + " minute" + (minutes == 1 ? "" : "s");
+            } else if (minutes == 1) {
+                out += minutes + " minute";
+                out += seconds + " second" + (seconds == 1 ? "" : "s");
+            } else if (seconds > 0) {
+                out += seconds + " second" + (seconds == 1 ? "" : "s");
+            }
+        }
+        return out;
     }
 }

@@ -27,23 +27,33 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Objects;
 
-import static jacksunderscoreusername.trinkets.TrinketLevelComponent.TRINKET_LEVEL;
+import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.StoredPortalComponent.STORED_PORTAL;
 
 public class ActivatedEchoShard extends Trinket {
 
-    public static String id = "activated_echo_shard";
+    public static final String id = "activated_echo_shard";
+    public static final String name = "Activated Echo Shard";
 
     public String getId() {
         return id;
     }
 
+    public String getDisplayName() {
+        return name;
+    }
+
     public static Settings getSettings() {
-        return new Settings()
+        Settings settings = new Settings();
+        if (Trinkets.getTrinketLimit(id) > 0) {
+            settings = settings.maxDamage(Trinkets.getMaxDurability(id));
+        }
+        settings = settings
                 .maxCount(1)
-                .component(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(1))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
                 .rarity(Rarity.EPIC)
                 .component(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
+        return settings;
     }
 
     public ActivatedEchoShard(Settings settings) {
@@ -59,6 +69,11 @@ public class ActivatedEchoShard extends Trinket {
             if (world.isClient) {
                 return ActionResult.PASS;
             }
+
+            if (!Trinkets.canPlayerUseTrinkets(player)) {
+                return ActionResult.PASS;
+            }
+
             ItemStack itemStack = player.getStackInHand(hand);
             BlockPos pos = hitResult.getBlockPos();
             BlockState targetedBlockState = world.getBlockState(pos);
@@ -94,13 +109,13 @@ public class ActivatedEchoShard extends Trinket {
                     //First see if the portal is too far.
                     StoredPortalComponent.StoredPortal portalComponent = itemStack.get(STORED_PORTAL);
 
-                    int maxDistance = itemStack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(itemStack.get(TRINKET_LEVEL)).level() * 250;
+                    int maxDistance = itemStack.get(TRINKET_DATA) == null ? 0 : Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level() * 250;
 
                     // Calculate the positions as if they were in the overworld.
-                    BlockPos overworldHere = world.getRegistryKey().equals(World.NETHER) ? pos.multiply(8) : pos;
-                    BlockPos overworldTarget = portalComponent.dim().equals(World.NETHER) ? portalComponent.pos().multiply(8) : portalComponent.pos();
+                    BlockPos overworldHere = world.getRegistryKey().equals(World.NETHER) ? pos.multiply(8).withY(pos.getY() / 8) : pos;
+                    assert portalComponent != null;
+                    BlockPos overworldTarget = portalComponent.dim().equals(World.NETHER) ? portalComponent.pos().multiply(8).withY(portalComponent.pos().getY()) : portalComponent.pos();
                     int distance = overworldHere.getManhattanDistance(overworldTarget);
-
 
                     // If they are too far.
                     if (distance > maxDistance) {
@@ -164,6 +179,7 @@ public class ActivatedEchoShard extends Trinket {
                     itemStack.set(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
 
                     // Returns success so that the player swings and no further listeners fire.
+                    ((Trinket) itemStack.getItem()).markUsed(itemStack, player);
                     ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(player.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
                     return ActionResult.SUCCESS;
                 }
@@ -177,15 +193,16 @@ public class ActivatedEchoShard extends Trinket {
         ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
             if (
                     entity instanceof PlayerEntity &&
+                            Trinkets.canPlayerUseTrinkets((PlayerEntity) entity) &&
                             (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD) ||
                                     ((PlayerEntity) entity).getOffHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD)) &&
                             killedEntity instanceof WardenEntity
             ) {
-                if (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD)) {
-                    ((PlayerEntity) entity).getMainHandStack().set(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(((PlayerEntity) entity).getMainHandStack().get(TRINKET_LEVEL) == null ? 2 : Objects.requireNonNull(((PlayerEntity) entity).getMainHandStack().get(TRINKET_LEVEL)).level() + 1));
-                } else {
-                    ((PlayerEntity) entity).getOffHandStack().set(TRINKET_LEVEL, new TrinketLevelComponent.TrinketLevel(((PlayerEntity) entity).getOffHandStack().get(TRINKET_LEVEL) == null ? 2 : Objects.requireNonNull(((PlayerEntity) entity).getOffHandStack().get(TRINKET_LEVEL)).level() + 1));
-                }
+                boolean isMainHand = ((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD);
+                ItemStack item = isMainHand ? ((PlayerEntity) entity).getMainHandStack() : ((PlayerEntity) entity).getOffHandStack();
+                TrinketDataComponent.TrinketData oldData = item.get(TRINKET_DATA);
+                assert oldData != null;
+                item.set(TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
                 world.playSound(null, entity.getBlockPos(), SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
             }
         });
@@ -200,6 +217,11 @@ public class ActivatedEchoShard extends Trinket {
         if (world.isClient) {
             return ActionResult.PASS;
         }
+
+        if (!Trinkets.canPlayerUseTrinkets(user)) {
+            return ActionResult.PASS;
+        }
+
         ItemStack itemStack = user.getStackInHand(hand);
 
         // Since this event triggers for both hands it needs to check and make sure that the current hand is the one holding the item.
@@ -228,11 +250,14 @@ public class ActivatedEchoShard extends Trinket {
     // This runs effectively constantly whenever the tooltip is needed, so there is no need to trigger any event to update the tooltip.
     @Override
     public void appendTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
+        if (!((Trinket) stack.getItem()).shouldShowTooltip(stack, context, tooltip, type)) {
+            return;
+        }
 
         // Get the stored data in the item.
         StoredPortalComponent.StoredPortal itemData = stack.get(STORED_PORTAL);
 
-        int maxDistance = stack.get(TRINKET_LEVEL) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_LEVEL)).level() * 250;
+        int maxDistance = stack.get(TRINKET_DATA) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_DATA)).level() * 250;
 
         // If the item has no stored portal.
         if (itemData == null || !itemData.hasPortal()) {

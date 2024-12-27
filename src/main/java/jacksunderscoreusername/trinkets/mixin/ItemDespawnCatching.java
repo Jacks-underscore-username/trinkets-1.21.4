@@ -1,22 +1,16 @@
 package jacksunderscoreusername.trinkets.mixin;
 
-import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
+import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.Trinket;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.ItemEntity;
-import net.minecraft.item.Item;
-import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 
 @Mixin(ItemEntity.class)
-public abstract class ItemDespawnCatching extends Entity {
-    public ItemDespawnCatching(EntityType<?> type, World world) {
-        super(type, world);
-    }
-
-    @WrapWithCondition(
+public class ItemDespawnCatching {
+    @WrapOperation(
             method = "tick",
             at = @At(
                     value = "INVOKE",
@@ -24,11 +18,8 @@ public abstract class ItemDespawnCatching extends Entity {
                     ordinal = 1
             )
     )
-    private boolean catchDespawn(ItemEntity instance) {
-        Item item = instance.getStack().getItem();
-        if (item instanceof Trinket) {
-            ((Trinket) item).markRemoved();
-        }
-        return true;
+    private void catchDespawn(ItemEntity instance, Operation<Void> original) {
+        if (instance.getStack().getItem() instanceof Trinket trinket) trinket.markRemoved(instance.getStack());
+        original.call(instance);
     }
 }
