@@ -261,16 +261,15 @@ public class ActivatedEchoShard extends Trinket {
 
         // If the item has no stored portal.
         if (itemData == null || !itemData.hasPortal()) {
-            tooltip.add(Text.literal("No portal has been set").formatted(Formatting.ITALIC));
-            tooltip.add(Text.literal("Right click a nether portal to link").formatted(Formatting.ITALIC));
+            tooltip.add(Text.literal("No portal has been set").formatted(Formatting.LIGHT_PURPLE));
+            tooltip.add(Text.literal("Right click a nether portal to link").formatted(Formatting.LIGHT_PURPLE));
         } else {
             // If the item has a stored portal (regardless of whether it still exists).
             tooltip.add(Text.literal("Linked to a portal at ").formatted(Formatting.LIGHT_PURPLE).append(Text.literal("(" + itemData.pos().getX() + ", " + itemData.pos().getY() + ", " + itemData.pos().getZ() + ") in dimension " + itemData.dim().getValue().getPath()).formatted(Formatting.AQUA)));
-            tooltip.add(Text.literal("Right click a different nether portal to link them").formatted(Formatting.ITALIC));
-            tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(Formatting.ITALIC));
+            tooltip.add(Text.literal("Right click a different nether portal to link them").formatted(Formatting.LIGHT_PURPLE));
+            tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(Formatting.LIGHT_PURPLE));
         }
-
-        tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.DARK_PURPLE));
-        tooltip.add(Text.literal("Kill a warden while holding this to upgrade").formatted(Formatting.DARK_PURPLE, Formatting.ITALIC));
+        tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("Kill a warden while holding this to upgrade").formatted(Formatting.LIGHT_PURPLE, Formatting.ITALIC));
     }
 }

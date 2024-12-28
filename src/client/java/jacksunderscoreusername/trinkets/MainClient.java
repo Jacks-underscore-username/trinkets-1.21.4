@@ -1,11 +1,21 @@
 package jacksunderscoreusername.trinkets;
 
+import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.minecraft.client.render.RenderLayer;
+import net.minecraft.client.render.entity.DragonFireballEntityRenderer;
+import net.minecraft.client.render.entity.EntityRendererFactory;
+import net.minecraft.client.render.entity.FlyingItemEntityRenderer;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
 import net.minecraft.util.Hand;
+
+import java.util.Map;
 
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.Setup.ECHO_PORTAL;
 
@@ -36,5 +46,7 @@ public class MainClient implements ClientModInitializer {
                 config = Config.fromJsonString(payload.configJson());
             });
         });
+
+        EntityRendererRegistry.register(VariedDragonFireball.VARIED_DRAGON_FIREBALL, VariedDragonFireballRenderer::new);
     }
 }
