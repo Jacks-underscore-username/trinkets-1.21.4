@@ -40,5 +40,7 @@ public class Main implements ModInitializer {
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             sender.sendPacket(new ConfigPayload(config.toJsonString()));
         });
+
+        Commands.initialize();
     }
 }

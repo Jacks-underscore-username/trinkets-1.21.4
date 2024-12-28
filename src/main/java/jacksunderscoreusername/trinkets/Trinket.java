@@ -76,11 +76,13 @@ abstract public class Trinket extends Item {
         ArrayList<StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry> history = Main.state.data.playerTrinketUseHistory.computeIfAbsent(user.getUuid(), k -> new ArrayList<>());
         history.add(new StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry(Main.server.getTicks(), UUID.fromString(Objects.requireNonNull(trinket.get(TRINKET_DATA)).UUID())));
         Main.state.data.playerTrinketUseHistory.put(user.getUuid(), history);
-        if (!user.isCreative() && Main.config.max_uses > 0 && trinket.getDamage() + 1 >= trinket.getMaxDamage()) {
-            ((Trinket) trinket.getItem()).markRemoved(trinket);
-        }
+        if (Trinkets.getMaxDurability(getId()) > 0) {
+            if (!user.isCreative() && trinket.getDamage() + 1 >= trinket.getMaxDamage()) {
+                ((Trinket) trinket.getItem()).markRemoved(trinket);
+            }
 
-        trinket.damage(1, user, ItemStack.areEqual(user.getMainHandStack(), trinket) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+            trinket.damage(1, user, ItemStack.areEqual(user.getMainHandStack(), trinket) ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND);
+        }
     }
 
     @Override
