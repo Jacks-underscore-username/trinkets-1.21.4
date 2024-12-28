@@ -87,6 +87,8 @@ public class DragonsFury extends Trinket {
                 world.playSound(null, entity.getBlockPos(), SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, SoundCategory.PLAYERS, 1.0F, 0.75F);
             }
         });
+
+        VariedDragonFireball.initialize();
     }
 
     @Override

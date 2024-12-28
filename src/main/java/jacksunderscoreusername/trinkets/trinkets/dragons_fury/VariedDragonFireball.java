@@ -90,4 +90,6 @@ public class VariedDragonFireball extends ExplosiveProjectileEntity {
     protected boolean isBurning() {
         return false;
     }
+
+    public static void initialize() {}
 }
