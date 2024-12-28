@@ -293,13 +293,13 @@ public class Utils {
                 hours = Math.round(hours + minutes / 60F);
                 out += hours + " hour" + (hours == 1 ? "" : "s");
             } else if (hours == 1) {
-                out += hours + " hour";
+                out += hours + " hour ";
                 out += minutes + " minute" + (minutes == 1 ? "" : "s");
             } else if (minutes > 1 || (minutes == 1 && seconds == 0)) {
                 minutes = Math.round(minutes + seconds / 60F);
                 out += minutes + " minute" + (minutes == 1 ? "" : "s");
             } else if (minutes == 1) {
-                out += minutes + " minute";
+                out += minutes + " minute ";
                 out += seconds + " second" + (seconds == 1 ? "" : "s");
             } else if (seconds > 0) {
                 out += seconds + " second" + (seconds == 1 ? "" : "s");

@@ -5,6 +5,7 @@ import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
 import jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal.EternalBonemeal;
 import jacksunderscoreusername.trinkets.trinkets.gravity_disruptor.GravityDisruptor;
 import jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.ActivatedEchoShard;
+import jacksunderscoreusername.trinkets.trinkets.suspicious_substance.SuspiciousSubstance;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -28,8 +29,9 @@ public class Trinkets {
     public static final Trinket GRAVITY_DISRUPTOR = register(GravityDisruptor.id, GravityDisruptor::new, GravityDisruptor.getSettings());
     public static final Trinket DRAGONS_FURY = register(DragonsFury.id, DragonsFury::new, DragonsFury.getSettings());
     public static final Trinket ETERNAL_BONEMEAL = register(EternalBonemeal.id, EternalBonemeal::new, EternalBonemeal.getSettings());
+    public static final Trinket SUSPICIOUS_SUBSTANCE = register(SuspiciousSubstance.id, SuspiciousSubstance::new, SuspiciousSubstance.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE};
 
     public static Trinket register(String id, Function<Item.Settings, Item> factory, Item.Settings settings) {
 
