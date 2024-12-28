@@ -69,24 +69,8 @@ public class DragonsFury extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.OnMobKill(EntityType.ENDER_DRAGON, 2, this);
-
-        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
-            if (
-                    entity instanceof PlayerEntity &&
-                            Trinkets.canPlayerUseTrinkets((PlayerEntity) entity) &&
-                            (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.DRAGONS_FURY) ||
-                                    ((PlayerEntity) entity).getOffHandStack().getItem().equals(Trinkets.DRAGONS_FURY)) &&
-                            killedEntity instanceof EnderDragonEntity
-            ) {
-                boolean isMainHand = ((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.DRAGONS_FURY);
-                ItemStack item = isMainHand ? ((PlayerEntity) entity).getMainHandStack() : ((PlayerEntity) entity).getOffHandStack();
-                TrinketDataComponent.TrinketData oldData = item.get(TRINKET_DATA);
-                assert oldData != null;
-                item.set(TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
-                world.playSound(null, entity.getBlockPos(), SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, SoundCategory.PLAYERS, 1.0F, 0.75F);
-            }
-        });
+        TrinketCreationHandlers.onMobKill(EntityType.ENDER_DRAGON, 2, this);
+        TrinketCreationHandlers.onMobKill(EntityType.ENDER_DRAGON, 1, this, SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 1.0F, 0.75F);
 
         VariedDragonFireball.initialize();
     }

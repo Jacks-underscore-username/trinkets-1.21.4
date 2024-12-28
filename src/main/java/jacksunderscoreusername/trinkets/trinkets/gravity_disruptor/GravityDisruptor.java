@@ -72,25 +72,8 @@ public class GravityDisruptor extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.OnMobKill(EntityType.SHULKER, 50, this);
-
-        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
-            if (
-                    entity instanceof PlayerEntity &&
-                            Trinkets.canPlayerUseTrinkets((PlayerEntity) entity) &&
-                            (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.GRAVITY_DISRUPTOR) ||
-                                    ((PlayerEntity) entity).getOffHandStack().getItem().equals(Trinkets.GRAVITY_DISRUPTOR)) &&
-                            killedEntity instanceof ShulkerEntity &&
-                            Math.random() < .1
-            ) {
-                boolean isMainHand = ((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.GRAVITY_DISRUPTOR);
-                ItemStack item = isMainHand ? ((PlayerEntity) entity).getMainHandStack() : ((PlayerEntity) entity).getOffHandStack();
-                TrinketDataComponent.TrinketData oldData = item.get(TRINKET_DATA);
-                assert oldData != null;
-                item.set(TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
-                world.playSound(null, entity.getBlockPos(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.PLAYERS, 0.5F, 0.75F);
-            }
-        });
+        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 50, this);
+        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 10, this, SoundEvents.ENTITY_EVOKER_CAST_SPELL, 0.5F, 0.75F);
     }
 
     @Override
@@ -145,7 +128,7 @@ public class GravityDisruptor extends Trinket {
 
         tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.AQUA));
         tooltip.add(Text.literal("levitation 1" + (maxAmp == 0 ? "" : "-" + (maxAmp + 1)) + " to all other living entities").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("within the a " + radius * 2 + " block wide cube").formatted(Formatting.AQUA));
+        tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.AQUA));
         tooltip.add(Text.literal("centered on you for " + minTime + "-" + maxTime + " seconds").formatted(Formatting.AQUA));
 
         tooltip.add(Text.literal("Kill a shulker while holding this for a 1/10 chance to upgrade").formatted(Formatting.ITALIC, Formatting.AQUA));

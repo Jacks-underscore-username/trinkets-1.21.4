@@ -62,7 +62,8 @@ public class ActivatedEchoShard extends Trinket {
 
     public void initialize() {
         // Register this trinket with the creation handlers so that it can spawn on warden kill.
-        TrinketCreationHandlers.OnMobKill(EntityType.WARDEN, 10, this);
+        TrinketCreationHandlers.onMobKill(EntityType.WARDEN, 10, this);
+        TrinketCreationHandlers.onMobKill(EntityType.WARDEN, 1, this, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1, 1);
 
         // Setup all the used on portal interactions.
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
@@ -187,24 +188,6 @@ public class ActivatedEchoShard extends Trinket {
 
             // Returns pass so that the player does not swing their arm and the next event listener can run.
             return ActionResult.PASS;
-        });
-
-        // Setup the trinket upgrading logic.
-        ServerEntityCombatEvents.AFTER_KILLED_OTHER_ENTITY.register((world, entity, killedEntity) -> {
-            if (
-                    entity instanceof PlayerEntity &&
-                            Trinkets.canPlayerUseTrinkets((PlayerEntity) entity) &&
-                            (((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD) ||
-                                    ((PlayerEntity) entity).getOffHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD)) &&
-                            killedEntity instanceof WardenEntity
-            ) {
-                boolean isMainHand = ((PlayerEntity) entity).getMainHandStack().getItem().equals(Trinkets.ACTIVATED_ECHO_SHARD);
-                ItemStack item = isMainHand ? ((PlayerEntity) entity).getMainHandStack() : ((PlayerEntity) entity).getOffHandStack();
-                TrinketDataComponent.TrinketData oldData = item.get(TRINKET_DATA);
-                assert oldData != null;
-                item.set(TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
-                world.playSound(null, entity.getBlockPos(), SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, SoundCategory.PLAYERS, 1.0F, 1.0F);
-            }
         });
 
         // Links the echo portal block and block entity.

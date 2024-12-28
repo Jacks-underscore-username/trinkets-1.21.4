@@ -19,16 +19,6 @@ import java.util.UUID;
 
 import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
 
-/**
- * Rules for creating a trinket:
- * * It must have a getId() and getTrinketName() function.
- * * If the item has custom settings it needs to have the TrinketData component.
- * * It needs to trigger markCreated / markDestroyed.
- * * It needs to handle the creation of the item creation.
- * * It needs to trigger markUsed every time it's used.
- * * It needs to first check canBeUsed() before it's used.
- * * It needs to call super.appendTooltip() at the end of the tooltip code.
- */
 abstract public class Trinket extends Item {
     public Trinket(Settings settings) {
         super(settings);
