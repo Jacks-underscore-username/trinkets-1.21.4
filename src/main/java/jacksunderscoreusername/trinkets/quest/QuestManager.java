@@ -4,9 +4,7 @@ import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.dialog.DialogHelper;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.dialog.DialogScreenHandler;
-import jacksunderscoreusername.trinkets.payloads.SendDialogPagePayload;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.WrittenBookContentComponent;
 import net.minecraft.entity.*;
@@ -17,7 +15,6 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
-import net.minecraft.screen.SimpleNamedScreenHandlerFactory;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
@@ -55,15 +52,22 @@ public class QuestManager {
                 if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
                     DialogPage page = new DialogPage();
                     page.addItems(
-                            new DialogPage.DialogPageItem(Text.literal("Want some ").formatted(Formatting.ITALIC, Formatting.DARK_GRAY).append(Text.literal("golden").formatted(Formatting.ITALIC, Formatting.GOLD)).append(Text.literal(" apples?").formatted(Formatting.ITALIC, Formatting.DARK_GRAY))),
-                            new DialogPage.DialogPageItem(Text.literal("It will cost you one diamond").formatted(Formatting.DARK_GRAY)));
-                    page.addItems(new DialogPage.DialogPageItem(Text.literal("Sure!").formatted(Formatting.ITALIC), (subPlayer, inventory) -> {
-                        if (inventory.getStack(0).isOf(Items.DIAMOND) && inventory.getStack(1).isEmpty()) {
+                            new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("Want some ").formatted(Formatting.ITALIC, Formatting.DARK_GRAY).append(Text.literal("golden").formatted(Formatting.ITALIC, Formatting.GOLD)).append(Text.literal(" apples?").formatted(Formatting.ITALIC, Formatting.DARK_GRAY))),
+                            new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("It will cost you one diamond").formatted(Formatting.DARK_GRAY)));
+                    page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.BUTTON).setText(Text.literal("Sure!").formatted(Formatting.ITALIC)).setClickCallback((subPlayer, inventory) -> {
+                        if (inventory.getStack(0).isOf(Items.DIAMOND) && (inventory.getStack(1).isEmpty() || (inventory.getStack(1).isOf(Items.GOLDEN_APPLE) && inventory.getStack(1).getCount() < inventory.getStack(1).getMaxCount()))) {
                             inventory.getStack(0).decrement(1);
-                            inventory.setStack(1, Items.GOLDEN_APPLE.getDefaultStack());
+                            if (inventory.getStack(1).isEmpty()) {
+                                inventory.setStack(1, Items.GOLDEN_APPLE.getDefaultStack());
+                            } else inventory.getStack(1).increment(1);
+
                             inventory.markDirty();
                         }
-                    }, serverPlayer, Text.literal("Click to buy").formatted(Formatting.ITALIC)));
+                    })
+                            .setTooltip(Text.literal("Click to buy").formatted(Formatting.ITALIC))
+                            .setAlignment(DialogPage.Alignment.BOTTOM));
+//                    for (var i = 0; i < 250; i++)
+//                        page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("X")));
                     DialogHelper.openScreen(serverPlayer, livingEntity, page);
                 }
                 return ActionResult.SUCCESS;

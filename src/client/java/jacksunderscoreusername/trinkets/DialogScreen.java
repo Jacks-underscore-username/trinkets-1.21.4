@@ -1,8 +1,6 @@
 package jacksunderscoreusername.trinkets;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.mojang.serialization.JsonOps;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.dialog.DialogScreenHandler;
 import jacksunderscoreusername.trinkets.payloads.DialogClickedPayload;
@@ -18,17 +16,19 @@ import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.text.Text;
-import net.minecraft.text.TextCodecs;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.Box;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class DialogScreen extends HandledScreen<DialogScreenHandler> {
     private static final Gson gson = new Gson();
     private static final Identifier TEXTURE = Identifier.of(Main.MOD_ID, "textures/gui/container/dialog.png");
     public LivingEntity speakingEntity;
     private final PlayerEntity player;
-    public DialogPage page;
+    public List<DialogPage.DialogPageItem> items = new ArrayList<>();
     private LoadingWidget loadingWidget;
 
     public DialogScreen(DialogScreenHandler handler, PlayerInventory inventory, Text title) {
@@ -38,44 +38,6 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
 
     @Override
     protected void drawForeground(DrawContext context, int mouseX, int mouseY) {
-        int y = this.y + 8;
-        int x = this.x + 8 + 18 * 4;
-        int maxWidth = this.x + this.backgroundWidth - x - 8;
-        if (page != null) {
-            if (loadingWidget != null) {
-                loadingWidget.setPosition(this.width * 2, this.height * 2);
-                loadingWidget = null;
-            }
-            int buttonIndex = 0;
-            for (var item : page.items) {
-                Text text = TextCodecs.CODEC.decode(JsonOps.INSTANCE, gson.fromJson(item.text, JsonElement.class)).getOrThrow().getFirst();
-                if (item.isButton) {
-                    int finalButtonIndex = buttonIndex;
-                    ButtonWidget.Builder button = ButtonWidget.builder(text, (widget) -> {
-                        ClientPlayNetworking.send(new DialogClickedPayload(finalButtonIndex));
-                    });
-                    if (item.tooltip != null) {
-                        button.tooltip(Tooltip.of(TextCodecs.CODEC.decode(JsonOps.INSTANCE, gson.fromJson(item.text, JsonElement.class)).getOrThrow().getFirst()));
-                    }
-                    ButtonWidget widget = addDrawableChild(button.build());
-                    widget.setWidth(textRenderer.getWidth(text) + 8);
-                    widget.setHeight(textRenderer.getWrappedLinesHeight(text, Integer.MAX_VALUE) + 8);
-                    widget.setPosition(x, y);
-                    y += widget.getHeight();
-                    buttonIndex++;
-                } else {
-                    ShadowlessMultilineTextWidget widget = new ShadowlessMultilineTextWidget(text, textRenderer);
-                    widget.setMaxWidth(maxWidth);
-                    widget.setPosition(x, y);
-                    y += widget.getHeight();
-                    addDrawable(widget);
-                }
-            }
-        } else {
-            loadingWidget = new LoadingWidget(textRenderer, Text.literal("Generating quest").formatted(Formatting.ITALIC));
-            loadingWidget.setPosition(x, y);
-            addDrawable(loadingWidget);
-        }
     }
 
     @Override
@@ -83,13 +45,6 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
         int i = (this.width - this.backgroundWidth) / 2;
         int j = (this.height - this.backgroundHeight) / 2;
         context.drawTexture(RenderLayer::getGuiTextured, TEXTURE, i, j, 0.0F, 0.0F, this.backgroundWidth, this.backgroundHeight, 256, 256);
-    }
-
-    @Override
-    public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-        renderBackground(context, mouseX, mouseY, delta);
-        super.render(context, mouseX, mouseY, delta);
-        drawMouseoverTooltip(context, mouseX, mouseY);
         if (speakingEntity != null) {
             Box entityBounds = speakingEntity.getBoundingBox(EntityPose.STANDING);
             Box playerBounds = player.getBoundingBox(EntityPose.STANDING);
@@ -101,13 +56,65 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
     @Override
     protected void init() {
         super.init();
-        titleX = (backgroundWidth - textRenderer.getWidth(title)) / 2;
+        int minX = this.x + 8 + 18 * 4;
+        int minY = this.y + 8;
+        int maxX = this.x + this.backgroundWidth - 8;
+        int maxY = this.y + this.backgroundHeight - 8 - 18 - 8 - 18 * 3;
+        if (!items.isEmpty()) {
+            if (loadingWidget != null) {
+                loadingWidget.setPosition(this.width * 2, this.height * 2);
+                loadingWidget = null;
+            }
+            int buttonIndex = 0;
+            for (var item : items) {
+                ClickableWidget widget = null;
+                if (item.getType().equals(DialogPage.Type.TEXT)) {
+                    ShadowlessMultilineTextWidget subWidget = new ShadowlessMultilineTextWidget(item.getText(), textRenderer);
+                    subWidget.setMaxWidth(maxX - minX);
+                    widget = subWidget;
+                }
+                if (item.getType().equals(DialogPage.Type.BUTTON)) {
+                    int finalButtonIndex = buttonIndex;
+                    ButtonWidget.Builder button = ButtonWidget.builder(item.getText(), (w) -> {
+                        ClientPlayNetworking.send(new DialogClickedPayload(finalButtonIndex));
+                    });
+                    if (item.getTooltip() != null) {
+                        button.tooltip(Tooltip.of(item.getTooltip()));
+                    }
+                    ButtonWidget subWidget = button.build();
+                    subWidget.setWidth(textRenderer.getWidth(item.getText()) + 8);
+                    subWidget.setHeight(textRenderer.getWrappedLinesHeight(item.getText(), Integer.MAX_VALUE) + 8);
+                    widget = subWidget;
+                    buttonIndex++;
+                }
+                if (widget == null) {
+                    throw new RuntimeException("Invalid widget type");
+                }
+                if (item.getAlignment().equals(DialogPage.Alignment.BOTTOM)) {
+                    maxY -= widget.getHeight();
+                    widget.setPosition(minX, maxY);
+                } else {
+                    widget.setPosition(minX, minY);
+                    minY += widget.getHeight();
+                }
+                if (item.isClickable()) {
+                    addDrawableChild(widget);
+                } else {
+                    addDrawable(widget);
+                }
+            }
+        } else {
+            loadingWidget = new LoadingWidget(textRenderer, Text.literal("Generating quest").formatted(Formatting.ITALIC));
+            loadingWidget.setPosition(x, y);
+            addDrawable(loadingWidget);
+        }
     }
 
 
     @Override
     public void close() {
-        page = null;
+        items = new ArrayList<>();
+        loadingWidget = null;
         super.close();
     }
 }

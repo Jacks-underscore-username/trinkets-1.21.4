@@ -32,15 +32,6 @@ public class DialogScreenHandler extends ScreenHandler {
     public DialogScreenHandler(int syncId, PlayerInventory playerInventory, LivingEntity speakingEntity, Inventory inventory) {
         super(QuestManager.DIALOG_SCREEN_HANDLER, syncId);
         boolean isClient = speakingEntity.getWorld().isClient;
-        if (!isClient) {
-            UUID key = playerInventory.player.getUuid();
-            DialogHelper.currentCallbacks.remove(key);
-            if (DialogHelper.newCallbacks.containsKey(key)) {
-                DialogHelper.currentCallbacks.put(key, DialogHelper.newCallbacks.get(key));
-                DialogHelper.newCallbacks.remove(key);
-            }
-
-        }
         this.inventory = inventory;
         this.speakingEntity = speakingEntity;
         if (!isClient) {

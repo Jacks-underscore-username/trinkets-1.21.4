@@ -67,14 +67,15 @@ public class MainClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(SendDialogPagePayload.ID, (payload, context) -> {
             context.client().execute(() -> {
                 if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
-                    screen.page = DialogPage.fromJsonString(payload.pageJson());
+                    screen.items = DialogPage.decodeItems(payload.pageJson());
+                    screen.init();
                 }
             });
         });
 
         ClientPlayNetworking.registerGlobalReceiver(CloseDialogPagePayload.ID, (payload, context) -> {
             context.client().execute(() -> {
-                if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
+                if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen) {
                     MinecraftClient.getInstance().setScreen(null);
                 }
             });
