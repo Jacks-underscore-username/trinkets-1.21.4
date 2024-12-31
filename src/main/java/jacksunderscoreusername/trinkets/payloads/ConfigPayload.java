@@ -1,5 +1,6 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.payloads;
 
+import jacksunderscoreusername.trinkets.Main;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.codec.PacketCodecs;

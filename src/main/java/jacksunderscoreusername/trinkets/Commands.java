@@ -1,5 +1,7 @@
 package jacksunderscoreusername.trinkets;
 
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
+import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;

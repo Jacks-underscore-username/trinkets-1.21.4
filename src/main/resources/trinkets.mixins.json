@@ -3,7 +3,8 @@
   "package": "jacksunderscoreusername.trinkets.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "ItemDespawnCatching"
+    "ItemDespawnCatching",
+    "LivingEntityDeathEventMixin"
   ],
   "injectors": {
     "defaultRequire": 1

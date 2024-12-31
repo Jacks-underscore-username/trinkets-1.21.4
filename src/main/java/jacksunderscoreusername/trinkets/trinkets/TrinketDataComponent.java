@@ -1,7 +1,8 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.trinkets;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import jacksunderscoreusername.trinkets.Main;
 import net.minecraft.component.ComponentType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;

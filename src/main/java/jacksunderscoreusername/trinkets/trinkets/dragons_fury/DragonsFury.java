@@ -1,32 +1,25 @@
 package jacksunderscoreusername.trinkets.trinkets.dragons_fury;
 
 import jacksunderscoreusername.trinkets.*;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
+import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
+import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.fabricmc.fabric.api.object.builder.v1.entity.FabricEntityTypeBuilder;
 import net.minecraft.entity.*;
-import net.minecraft.entity.boss.dragon.EnderDragonEntity;
-import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
-import net.minecraft.entity.mob.ShulkerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.registry.Registry;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Objects;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
 public class DragonsFury extends Trinket {
     public static String id = "dragons_fury";

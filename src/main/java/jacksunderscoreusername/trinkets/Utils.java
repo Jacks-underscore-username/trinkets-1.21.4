@@ -1,20 +1,22 @@
 package jacksunderscoreusername.trinkets;
 
+import com.mojang.datafixers.util.Pair;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.block.entity.BlockEntity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.registry.RegistryKey;
-import net.minecraft.util.Clearable;
+import net.minecraft.registry.RegistryKeys;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
-import net.minecraft.world.BlockLocating;
 import net.minecraft.world.World;
+import net.minecraft.world.gen.structure.Structure;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class Utils {
@@ -306,5 +308,14 @@ public class Utils {
             }
         }
         return out;
+    }
+
+    public static Optional<Pair<BlockPos, RegistryEntry<Structure>>> findStructure(ServerWorld world, BlockPos pos, RegistryKey<Structure> key, int radius, boolean generateNew) {
+        RegistryEntryList<Structure> registryEntryList = RegistryEntryList.of(world.getRegistryManager().getOrThrow(RegistryKeys.STRUCTURE).getOrThrow(key));
+        Pair<BlockPos, RegistryEntry<Structure>> pair = world.getChunkManager().getChunkGenerator().locateStructure(world, registryEntryList, pos, radius, generateNew);
+        if (generateNew && pair != null && world.getChunk(pair.getFirst().getX() / 16, pair.getFirst().getZ() / 16).getInhabitedTime() != 0) {
+            return findStructure(world, pos, key, radius, true);
+        }
+        return Optional.ofNullable(pair);
     }
 }

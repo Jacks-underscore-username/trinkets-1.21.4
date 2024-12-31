@@ -1,5 +1,7 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.trinkets;
 
+import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
@@ -17,7 +19,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
 abstract public class Trinket extends Item {
     public Trinket(Settings settings) {

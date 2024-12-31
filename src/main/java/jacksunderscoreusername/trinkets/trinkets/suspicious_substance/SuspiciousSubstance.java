@@ -1,10 +1,10 @@
 package jacksunderscoreusername.trinkets.trinkets.suspicious_substance;
 
 import jacksunderscoreusername.trinkets.*;
+import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
+import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -17,13 +17,12 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.List;
 import java.util.Objects;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
 public class SuspiciousSubstance extends Trinket {
     public static String id = "suspicious_substance";

@@ -1,5 +1,6 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.trinkets;
 
+import jacksunderscoreusername.trinkets.Main;
 import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
 import net.minecraft.item.ItemGroup;
 import net.minecraft.item.ItemStack;

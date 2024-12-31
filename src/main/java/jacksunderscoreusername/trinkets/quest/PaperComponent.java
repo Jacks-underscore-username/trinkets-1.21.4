@@ -1,25 +1,25 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.quest;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+import jacksunderscoreusername.trinkets.Main;
 import net.minecraft.component.ComponentType;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.dynamic.Codecs;
 
-public class CooldownDataComponent {
-    public record CooldownData(int startTime, int totalTime, int timeLeft) {
+public class PaperComponent {
+    public record CooldownData(String tooltip, String contents) {
         public static final Codec<CooldownData> CODEC = RecordCodecBuilder.create(builder -> builder.group(
-                Codecs.POSITIVE_INT.fieldOf("start_time").forGetter(CooldownData::startTime),
-                Codecs.POSITIVE_INT.fieldOf("total_time").forGetter(CooldownData::totalTime),
-                Codecs.POSITIVE_INT.fieldOf("time_left").forGetter(CooldownData::timeLeft)
+                Codecs.NON_EMPTY_STRING.fieldOf("tooltip").forGetter(CooldownData::tooltip),
+                Codecs.NON_EMPTY_STRING.fieldOf("contents").forGetter(CooldownData::contents)
         ).apply(builder, CooldownData::new));
     }
 
-    public static final ComponentType<CooldownData> COOLDOWN = Registry.register(
+    public static final ComponentType<CooldownData> PAPER = Registry.register(
             Registries.DATA_COMPONENT_TYPE,
-            Identifier.of(Main.MOD_ID, "cooldown"),
+            Identifier.of(Main.MOD_ID, "paper"),
             ComponentType.<CooldownData>builder().codec(CooldownData.CODEC).build()
     );
 

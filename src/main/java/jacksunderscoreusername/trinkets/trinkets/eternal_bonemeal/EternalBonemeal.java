@@ -1,7 +1,8 @@
 package jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal;
 
 import jacksunderscoreusername.trinkets.*;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
+import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.*;
 import net.minecraft.entity.player.PlayerEntity;
@@ -26,11 +27,10 @@ import net.minecraft.world.World;
 import net.minecraft.world.WorldEvents;
 import net.minecraft.world.biome.Biome;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
 public class EternalBonemeal extends Trinket {
     public static String id = "eternal_bonemeal";

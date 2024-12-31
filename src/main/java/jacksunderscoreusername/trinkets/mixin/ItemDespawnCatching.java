@@ -2,8 +2,7 @@ package jacksunderscoreusername.trinkets.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
-import jacksunderscoreusername.trinkets.Main;
-import jacksunderscoreusername.trinkets.Trinket;
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import net.minecraft.entity.ItemEntity;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

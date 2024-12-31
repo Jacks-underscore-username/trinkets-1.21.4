@@ -45,6 +45,8 @@ public class StateSaverAndLoader extends PersistentState {
         public HashMap<UUID, StateSaverAndLoader.StoredData.currentTrinketPlayerMapEntry> currentTrinketPlayerMap = new HashMap<>();
         public HashMap<UUID, UUID> claimedTrinketPlayerMap = new HashMap<>();
         public HashMap<UUID, ArrayList<StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry>> playerTrinketUseHistory = new HashMap<>();
+
+        public ArrayList<UUID> questInitializedTraders = new ArrayList<>();
     }
 
     public StoredData data = new StoredData();

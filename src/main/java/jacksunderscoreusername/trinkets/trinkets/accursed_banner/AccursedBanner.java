@@ -1,4 +1,4 @@
-package jacksunderscoreusername.trinkets.trinkets.gravity_disruptor;
+package jacksunderscoreusername.trinkets.trinkets.accursed_banner;
 
 import jacksunderscoreusername.trinkets.*;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
@@ -27,9 +27,9 @@ import java.util.Objects;
 
 import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
-public class GravityDisruptor extends Trinket {
-    public static String id = "gravity_disruptor";
-    public static String name = "Gravity Disruptor";
+public class AccursedBanner extends Trinket {
+    public static String id = "accursed_banner";
+    public static String name = "Accursed Banner";
 
     public String getId() {
         return id;
@@ -51,7 +51,7 @@ public class GravityDisruptor extends Trinket {
         return settings;
     }
 
-    public GravityDisruptor(Settings settings) {
+    public AccursedBanner(Settings settings) {
         super(settings);
     }
 
@@ -74,6 +74,8 @@ public class GravityDisruptor extends Trinket {
     public void initialize() {
         TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 50, this);
         TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 10, this, SoundEvents.ENTITY_EVOKER_CAST_SPELL, 0.5F, 0.75F);
+        CursedEffect.initialize();
+        Ghost.initialize();
     }
 
     @Override

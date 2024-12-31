@@ -1,6 +1,8 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.trinkets;
 
 import com.google.common.collect.ImmutableList;
+import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.trinkets.accursed_banner.AccursedBanner;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
 import jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal.EternalBonemeal;
 import jacksunderscoreusername.trinkets.trinkets.gravity_disruptor.GravityDisruptor;
@@ -30,8 +32,9 @@ public class Trinkets {
     public static final Trinket DRAGONS_FURY = register(DragonsFury.id, DragonsFury::new, DragonsFury.getSettings());
     public static final Trinket ETERNAL_BONEMEAL = register(EternalBonemeal.id, EternalBonemeal::new, EternalBonemeal.getSettings());
     public static final Trinket SUSPICIOUS_SUBSTANCE = register(SuspiciousSubstance.id, SuspiciousSubstance::new, SuspiciousSubstance.getSettings());
+    public static final Trinket ACCURSED_BANNER = register(AccursedBanner.id, AccursedBanner::new, AccursedBanner.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, ACCURSED_BANNER};
 
     public static Trinket register(String id, Function<Item.Settings, Item> factory, Item.Settings settings) {
 
@@ -84,6 +87,11 @@ public class Trinkets {
         throw new RuntimeException("Invalid something I'm sure");
     }
 
+    public static Trinket getRandomTrinket() {
+        List<Trinket> validTrinkets = Arrays.stream(AllTrinkets).filter((trinket) -> canTrinketBeCreated(trinket.getId())).toList();
+        return validTrinkets.get((int) Math.floor(Math.random() * validTrinkets.size()));
+    }
+
     public static void initialize() {
         rarityColors.put(Rarity.COMMON, Formatting.WHITE);
         rarityColors.put(Rarity.UNCOMMON, Formatting.YELLOW);
@@ -129,6 +137,10 @@ public class Trinkets {
 
                         CooldownDataComponent.CooldownData cooldownData = item.get(CooldownDataComponent.COOLDOWN);
                         if (cooldownData != null) {
+                            if (cooldownData.startTime() > now) {
+                                item.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(0, cooldownData.totalTime(), cooldownData.totalTime()));
+                                continue;
+                            }
                             int timeLeft = cooldownData.totalTime() - (now - cooldownData.startTime()) / 20;
                             if (timeLeft <= 0) {
                                 item.remove(CooldownDataComponent.COOLDOWN);

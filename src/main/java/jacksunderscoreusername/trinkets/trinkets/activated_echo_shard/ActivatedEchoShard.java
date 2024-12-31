@@ -1,14 +1,17 @@
 package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
 
 import jacksunderscoreusername.trinkets.*;
-import net.fabricmc.fabric.api.entity.event.v1.ServerEntityCombatEvents;
+import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
+import jacksunderscoreusername.trinkets.trinkets.TrinketCreationHandlers;
+import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.mob.WardenEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -27,7 +30,7 @@ import net.minecraft.world.World;
 import java.util.List;
 import java.util.Objects;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.StoredPortalComponent.STORED_PORTAL;
 
 public class ActivatedEchoShard extends Trinket {

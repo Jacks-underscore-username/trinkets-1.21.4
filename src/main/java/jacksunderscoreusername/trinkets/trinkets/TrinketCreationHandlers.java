@@ -1,4 +1,4 @@
-package jacksunderscoreusername.trinkets;
+package jacksunderscoreusername.trinkets.trinkets;
 
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
@@ -18,7 +18,7 @@ import net.minecraft.world.World;
 
 import java.util.function.Predicate;
 
-import static jacksunderscoreusername.trinkets.TrinketDataComponent.TRINKET_DATA;
+import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
 public class TrinketCreationHandlers {
     private static void spawnTrinket(World world, Trinket trinket, Vec3d pos) {
