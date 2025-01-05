@@ -40,7 +40,7 @@ public class DragonsFury extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
                 .rarity(Rarity.RARE);
         return settings;
     }
@@ -62,9 +62,6 @@ public class DragonsFury extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.onMobKill(EntityType.ENDER_DRAGON, 2, this);
-        TrinketCreationHandlers.onMobKill(EntityType.ENDER_DRAGON, 1, this, SoundEvents.ITEM_BOTTLE_FILL_DRAGONBREATH, 1.0F, 0.75F);
-
         VariedDragonFireball.initialize();
     }
 
@@ -115,8 +112,6 @@ public class DragonsFury extends Trinket {
         tooltip.add(Text.literal("a dragon fireball that will create an").formatted(Formatting.AQUA));
         tooltip.add(Text.literal("effect cloud of instant damage " + (amplifier + 1)).formatted(Formatting.AQUA));
         tooltip.add(Text.literal("with a radius of " + radius + " for " + duration + " seconds").formatted(Formatting.AQUA));
-
-        tooltip.add(Text.literal("Kill the ender dragon while holding this to upgrade").formatted(Formatting.AQUA, Formatting.ITALIC));
 
         if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
             tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));

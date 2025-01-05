@@ -1,4 +1,4 @@
-package jacksunderscoreusername.trinkets.trinkets.accursed_banner;
+package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
 import jacksunderscoreusername.trinkets.Main;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;

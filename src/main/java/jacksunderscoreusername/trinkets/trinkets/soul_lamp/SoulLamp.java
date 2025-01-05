@@ -1,14 +1,16 @@
-package jacksunderscoreusername.trinkets.trinkets.accursed_banner;
+package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
-import jacksunderscoreusername.trinkets.*;
+import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.Utils;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
-import jacksunderscoreusername.trinkets.trinkets.*;
+import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
+import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
-import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
@@ -27,9 +29,9 @@ import java.util.Objects;
 
 import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
-public class AccursedBanner extends Trinket {
-    public static String id = "accursed_banner";
-    public static String name = "Accursed Banner";
+public class SoulLamp extends Trinket {
+    public static String id = "soul_lamp";
+    public static String name = "Soul Lamp";
 
     public String getId() {
         return id;
@@ -46,34 +48,28 @@ public class AccursedBanner extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
-                .rarity(Rarity.RARE);
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
+                .rarity(Rarity.EPIC);
         return settings;
     }
 
-    public AccursedBanner(Settings settings) {
+    public SoulLamp(Settings settings) {
         super(settings);
     }
 
     public static int getEffectRadius(int level) {
-        return 10 + (level - 1) * 3;
+        return 10 + (level - 1) * 5;
     }
 
-    public static int getMinEffectTime(int level) {
-        return 10 + (level - 1);
+    public static int getEffectTime(int level) {
+        return 60 + 30 * (level - 1);
     }
 
-    public static int getMaxEffectTime(int level) {
-        return 15 + (level - 1) * 2;
-    }
-
-    public static int getMaxEffectAmp(int level) {
+    public static int getEffectAmp(int level) {
         return level - 1;
     }
 
     public void initialize() {
-        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 50, this);
-        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 10, this, SoundEvents.ENTITY_EVOKER_CAST_SPELL, 0.5F, 0.75F);
         CursedEffect.initialize();
         Ghost.initialize();
     }
@@ -87,7 +83,7 @@ public class AccursedBanner extends Trinket {
             return ActionResult.PASS;
         }
         ItemStack itemStack = hand.equals(Hand.MAIN_HAND) ? user.getMainHandStack() : user.getOffHandStack();
-        if (!itemStack.isOf(Trinkets.GRAVITY_DISRUPTOR)) {
+        if (!itemStack.isOf(Trinkets.SOUL_LAMP)) {
             return ActionResult.PASS;
         }
         if (itemStack.get(CooldownDataComponent.COOLDOWN) != null) {
@@ -95,19 +91,18 @@ public class AccursedBanner extends Trinket {
         }
         int level = Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level();
         int radius = getEffectRadius(level);
-        int minTime = getMinEffectTime(level);
-        int maxTime = getMaxEffectTime(level);
-        int maxAmp = getMaxEffectAmp(level);
+        int time = getEffectTime(level);
+        int amp = getEffectAmp(level);
         List<Entity> entities = world.getOtherEntities(user, new Box(user.getX() - radius, user.getY() - radius, user.getZ() - radius, user.getX() + radius, user.getY() + radius, user.getZ() + radius));
         for (var entity : entities) {
             if (entity instanceof LivingEntity livingEntity) {
-                StatusEffectInstance effect = new StatusEffectInstance(StatusEffects.LEVITATION, (int) Math.round((Math.random() * (maxTime - minTime) + minTime) * 20), (int) Math.round(Math.random() * maxAmp));
+                StatusEffectInstance effect = new StatusEffectInstance(CursedEffect.CURSED, time * 20, amp);
                 livingEntity.addStatusEffect(effect, user);
             }
         }
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 5 * 60, 5 * 60));
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 15 * 60, 15 * 60));
         markUsed(itemStack, user);
-        world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EVOKER_CAST_SPELL, SoundCategory.PLAYERS, 1, 1);
+        world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 1.0F, 0.5F);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
         return ActionResult.SUCCESS;
     }
@@ -124,15 +119,12 @@ public class AccursedBanner extends Trinket {
 
         int level = Objects.requireNonNull(stack.get(TRINKET_DATA)).level();
         int radius = getEffectRadius(level);
-        int minTime = getMinEffectTime(level);
-        int maxTime = getMaxEffectTime(level);
-        int maxAmp = getMaxEffectAmp(level);
+        int time = getEffectTime(level);
+        int amp = getEffectAmp(level);
 
-        tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("levitation 1" + (maxAmp == 0 ? "" : "-" + (maxAmp + 1)) + " to all other living entities").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("centered on you for " + minTime + "-" + maxTime + " seconds").formatted(Formatting.AQUA));
-
-        tooltip.add(Text.literal("Kill a shulker while holding this for a 1/10 chance to upgrade").formatted(Formatting.ITALIC, Formatting.AQUA));
+        tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("curse " + (amp + 1) + " to all other living entities").formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("centered on you for " + Utils.prettyTime(time, true)).formatted(Formatting.LIGHT_PURPLE));
     }
 }

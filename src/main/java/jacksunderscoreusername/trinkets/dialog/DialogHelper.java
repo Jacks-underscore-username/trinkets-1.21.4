@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 public class DialogHelper {
-    public static HashMap<UUID, List<DialogPage.Callback>> callbacks = new HashMap<>();
+    public static HashMap<UUID, List<DialogPage.Callback>> buttonCallbacks = new HashMap<>();
 
     public static HashMap<UUID, Inventory> screenInventories = new HashMap<>();
 
@@ -23,6 +23,8 @@ public class DialogHelper {
         player.openHandledScreen(new SimpleNamedScreenHandlerFactory((syncId, playerInventory, subPlayer) ->
                 new DialogScreenHandler(syncId, playerInventory, speakingEntity), speakingEntity.getDisplayName()));
         ServerPlayNetworking.send(player, new SendDialogPagePayload(page.build(player)));
+        if (page.callback != null)
+            page.callback.apply(player, (SimpleInventory) screenInventories.get(player.getUuid()));
     }
 
     public static void closeScreen(ServerPlayerEntity player) {
@@ -32,7 +34,7 @@ public class DialogHelper {
     public static void initialize() {
         ServerPlayNetworking.registerGlobalReceiver(DialogClickedPayload.ID, (payload, context) -> {
             context.server().execute(() -> {
-                DialogHelper.callbacks.get(context.player().getUuid()).get(payload.index()).apply(context.player(), (SimpleInventory) screenInventories.get(context.player().getUuid()));
+                DialogHelper.buttonCallbacks.get(context.player().getUuid()).get(payload.index()).apply(context.player(), (SimpleInventory) screenInventories.get(context.player().getUuid()));
             });
         });
     }

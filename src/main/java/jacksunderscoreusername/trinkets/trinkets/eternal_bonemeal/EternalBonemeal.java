@@ -51,7 +51,7 @@ public class EternalBonemeal extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
                 .rarity(Rarity.UNCOMMON);
         return settings;
     }
@@ -65,8 +65,6 @@ public class EternalBonemeal extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.onBlockBreak((state) -> state.getBlock() instanceof CropBlock crop && crop.getAge(state) == crop.getMaxAge(), 150, this);
-        TrinketCreationHandlers.onBlockBreak((state) -> state.getBlock() instanceof CropBlock crop && crop.getAge(state) == crop.getMaxAge(), 500, this, SoundEvents.BLOCK_GROWING_PLANT_CROP, 1, 1);
     }
 
     @Override
@@ -177,7 +175,5 @@ public class EternalBonemeal extends Trinket {
         tooltip.add(Text.literal("Right click with this item to grow").formatted(Formatting.YELLOW));
         tooltip.add(Text.literal("everything within the " + radius * 2 + " block").formatted(Formatting.YELLOW));
         tooltip.add(Text.literal("wide cube centered on you").formatted(Formatting.YELLOW));
-
-        tooltip.add(Text.literal("Harvest fully grown crops while holding this for a chance to upgrade").formatted(Formatting.ITALIC, Formatting.YELLOW));
     }
 }

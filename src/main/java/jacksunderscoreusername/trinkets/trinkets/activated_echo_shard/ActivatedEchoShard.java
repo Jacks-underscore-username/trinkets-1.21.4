@@ -3,7 +3,6 @@ package jacksunderscoreusername.trinkets.trinkets.activated_echo_shard;
 import jacksunderscoreusername.trinkets.*;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
-import jacksunderscoreusername.trinkets.trinkets.TrinketCreationHandlers;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -53,7 +52,7 @@ public class ActivatedEchoShard extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
                 .rarity(Rarity.EPIC)
                 .component(STORED_PORTAL, new StoredPortalComponent.StoredPortal(new BlockPos(0, 0, 0), World.OVERWORLD, false));
         return settings;
@@ -64,9 +63,6 @@ public class ActivatedEchoShard extends Trinket {
     }
 
     public void initialize() {
-        // Register this trinket with the creation handlers so that it can spawn on warden kill.
-        TrinketCreationHandlers.onMobKill(EntityType.WARDEN, 10, this);
-        TrinketCreationHandlers.onMobKill(EntityType.WARDEN, 1, this, SoundEvents.ENTITY_WARDEN_TENDRIL_CLICKS, 1, 1);
 
         // Setup all the used on portal interactions.
         UseBlockCallback.EVENT.register((player, world, hand, hitResult) -> {
@@ -256,6 +252,5 @@ public class ActivatedEchoShard extends Trinket {
             tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(Formatting.LIGHT_PURPLE));
         }
         tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.LIGHT_PURPLE));
-        tooltip.add(Text.literal("Kill a warden while holding this to upgrade").formatted(Formatting.LIGHT_PURPLE, Formatting.ITALIC));
     }
 }

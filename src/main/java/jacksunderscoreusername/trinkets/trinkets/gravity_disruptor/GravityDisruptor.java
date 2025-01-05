@@ -1,11 +1,14 @@
 package jacksunderscoreusername.trinkets.trinkets.gravity_disruptor;
 
-import jacksunderscoreusername.trinkets.*;
+import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.Utils;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
-import jacksunderscoreusername.trinkets.trinkets.*;
+import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
+import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
@@ -46,7 +49,7 @@ public class GravityDisruptor extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
                 .rarity(Rarity.RARE);
         return settings;
     }
@@ -72,8 +75,6 @@ public class GravityDisruptor extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 50, this);
-        TrinketCreationHandlers.onMobKill(EntityType.SHULKER, 10, this, SoundEvents.ENTITY_EVOKER_CAST_SPELL, 0.5F, 0.75F);
     }
 
     @Override
@@ -130,7 +131,5 @@ public class GravityDisruptor extends Trinket {
         tooltip.add(Text.literal("levitation 1" + (maxAmp == 0 ? "" : "-" + (maxAmp + 1)) + " to all other living entities").formatted(Formatting.AQUA));
         tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.AQUA));
         tooltip.add(Text.literal("centered on you for " + minTime + "-" + maxTime + " seconds").formatted(Formatting.AQUA));
-
-        tooltip.add(Text.literal("Kill a shulker while holding this for a 1/10 chance to upgrade").formatted(Formatting.ITALIC, Formatting.AQUA));
     }
 }

@@ -1,6 +1,5 @@
 package jacksunderscoreusername.trinkets;
 
-import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
@@ -10,13 +9,10 @@ import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.text.Text;
-import net.minecraft.util.Formatting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.List;
 
 public class Main implements ModInitializer {
     public static final String MOD_ID = "trinkets";

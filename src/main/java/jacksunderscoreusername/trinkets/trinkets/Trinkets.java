@@ -2,12 +2,15 @@ package jacksunderscoreusername.trinkets.trinkets;
 
 import com.google.common.collect.ImmutableList;
 import jacksunderscoreusername.trinkets.Main;
-import jacksunderscoreusername.trinkets.trinkets.accursed_banner.AccursedBanner;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.SoulLamp;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
 import jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal.EternalBonemeal;
 import jacksunderscoreusername.trinkets.trinkets.gravity_disruptor.GravityDisruptor;
 import jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.ActivatedEchoShard;
 import jacksunderscoreusername.trinkets.trinkets.suspicious_substance.SuspiciousSubstance;
+import jacksunderscoreusername.trinkets.trinkets.trinket_dust.EpicTrinketDust;
+import jacksunderscoreusername.trinkets.trinkets.trinket_dust.RareTrinketDust;
+import jacksunderscoreusername.trinkets.trinkets.trinket_dust.UncommonTrinketDust;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
@@ -32,12 +35,15 @@ public class Trinkets {
     public static final Trinket DRAGONS_FURY = register(DragonsFury.id, DragonsFury::new, DragonsFury.getSettings());
     public static final Trinket ETERNAL_BONEMEAL = register(EternalBonemeal.id, EternalBonemeal::new, EternalBonemeal.getSettings());
     public static final Trinket SUSPICIOUS_SUBSTANCE = register(SuspiciousSubstance.id, SuspiciousSubstance::new, SuspiciousSubstance.getSettings());
-    public static final Trinket ACCURSED_BANNER = register(AccursedBanner.id, AccursedBanner::new, AccursedBanner.getSettings());
+    public static final Trinket SOUL_LAMP = register(SoulLamp.id, SoulLamp::new, SoulLamp.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, ACCURSED_BANNER};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP};
+
+    public static final Item UNCOMMON_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, UncommonTrinketDust.id)), UncommonTrinketDust::new, UncommonTrinketDust.getSettings());
+    public static final Item RARE_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, RareTrinketDust.id)), RareTrinketDust::new, RareTrinketDust.getSettings());
+    public static final Item EPIC_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, EpicTrinketDust.id)), EpicTrinketDust::new, EpicTrinketDust.getSettings());
 
     public static Trinket register(String id, Function<Item.Settings, Item> factory, Item.Settings settings) {
-
         final RegistryKey<Item> registryKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, id));
         return (Trinket) Items.register(registryKey, factory, settings);
     }

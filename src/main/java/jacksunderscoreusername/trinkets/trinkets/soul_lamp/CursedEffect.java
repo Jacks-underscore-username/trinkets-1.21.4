@@ -1,4 +1,4 @@
-package jacksunderscoreusername.trinkets.trinkets.accursed_banner;
+package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
 import jacksunderscoreusername.trinkets.events.LivingEntityDeathEvent;
 import jacksunderscoreusername.trinkets.Main;

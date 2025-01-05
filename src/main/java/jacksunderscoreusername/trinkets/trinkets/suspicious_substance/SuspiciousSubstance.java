@@ -4,7 +4,6 @@ import jacksunderscoreusername.trinkets.*;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.EntityType;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
@@ -43,7 +42,7 @@ public class SuspiciousSubstance extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, "", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
                 .rarity(Rarity.RARE);
         return settings;
     }
@@ -110,8 +109,6 @@ public class SuspiciousSubstance extends Trinket {
     }
 
     public void initialize() {
-        TrinketCreationHandlers.onMobKill(EntityType.WITCH, 50, this);
-        TrinketCreationHandlers.onMobKill(EntityType.WITCH, 25, this, SoundEvents.ENTITY_WITCH_DRINK, 1.0F, 1.0F);
     }
 
     @Override
@@ -156,7 +153,5 @@ public class SuspiciousSubstance extends Trinket {
         for (var effect : effects) {
             tooltip.add(Text.literal(" * " + effect.getEffectType().getIdAsString() + " " + (effect.getAmplifier() + 1)).formatted(Formatting.AQUA));
         }
-
-        tooltip.add(Text.literal("Kill a witch while holding this for a chance to upgrade").formatted(Formatting.ITALIC, Formatting.AQUA));
     }
 }

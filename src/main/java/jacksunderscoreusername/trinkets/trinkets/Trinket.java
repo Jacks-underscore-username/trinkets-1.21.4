@@ -92,7 +92,7 @@ abstract public class Trinket extends Item {
         if (entity instanceof PlayerEntity && !world.isClient) {
             TrinketDataComponent.TrinketData data = stack.get(TRINKET_DATA);
             assert data != null;
-            if (data.UUID().isEmpty()) {
+            if (data.UUID().length()<=1) {
                 markCreated(stack);
                 data = stack.get(TRINKET_DATA);
                 assert data != null;

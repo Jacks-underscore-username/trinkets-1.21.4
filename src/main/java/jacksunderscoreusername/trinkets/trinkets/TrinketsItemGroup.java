@@ -18,6 +18,9 @@ public final class TrinketsItemGroup {
                 for (var trinket : Trinkets.AllTrinkets) {
                     entries.add(trinket);
                 }
+                entries.add(Trinkets.UNCOMMON_TRINKET_DUST);
+                entries.add(Trinkets.RARE_TRINKET_DUST);
+                entries.add(Trinkets.EPIC_TRINKET_DUST);
             })
             .build();
 

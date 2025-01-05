@@ -1,8 +1,8 @@
 package jacksunderscoreusername.trinkets;
 
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
-import jacksunderscoreusername.trinkets.trinkets.accursed_banner.CursedEffect;
-import jacksunderscoreusername.trinkets.trinkets.accursed_banner.Ghost;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.CursedEffect;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.Ghost;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -47,7 +47,7 @@ public class GhostRenderer extends MobEntityRenderer<Ghost, VexEntityRenderState
     @Override
     public void render(VexEntityRenderState livingEntityRenderState, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player != null && (player.getStatusEffect(CursedEffect.CURSED) != null || player.getMainHandStack().isOf(Trinkets.ACCURSED_BANNER) || player.getOffHandStack().isOf(Trinkets.ACCURSED_BANNER))) {
+        if (player != null && (player.getStatusEffect(CursedEffect.CURSED) != null || player.getMainHandStack().isOf(Trinkets.SOUL_LAMP) || player.getOffHandStack().isOf(Trinkets.SOUL_LAMP))) {
             super.render(livingEntityRenderState, matrixStack, vertexConsumerProvider, i);
         }
     }

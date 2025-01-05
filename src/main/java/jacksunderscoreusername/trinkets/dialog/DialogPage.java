@@ -37,6 +37,7 @@ public class DialogPage {
         private String alignment = Alignment.TOP.toString();
         private boolean clickable = false;
         transient public Callback callback;
+        private boolean forceLineBreak = true;
 
         public Type getType() {
             return Type.valueOf(type);
@@ -79,6 +80,15 @@ public class DialogPage {
             return this;
         }
 
+        public boolean getForceLineBreak() {
+            return this.forceLineBreak;
+        }
+
+        public DialogPageItem setForceLineBreak(boolean forceLineBreak) {
+            this.forceLineBreak = forceLineBreak;
+            return this;
+        }
+
         public String toString() {
             return gson.toJson(this);
         }
@@ -97,10 +107,17 @@ public class DialogPage {
         return this;
     }
 
+    public DialogPage setOpenCallback(Callback callback) {
+        this.callback = callback;
+        return this;
+    }
+
     public ArrayList<DialogPageItem> items = new ArrayList<>();
 
+    public Callback callback = null;
+
     public String build(ServerPlayerEntity player) {
-        DialogHelper.callbacks.put(player.getUuid(), items.stream().map(item -> item.callback).filter(item -> item != null).toList());
+        DialogHelper.buttonCallbacks.put(player.getUuid(), items.stream().map(item -> item.callback).filter(item -> item != null).toList());
         return gson.toJson(items.stream().map(DialogPageItem::toString).toList(), List.class);
     }
 

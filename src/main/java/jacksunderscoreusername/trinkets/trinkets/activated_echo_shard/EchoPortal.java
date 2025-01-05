@@ -170,20 +170,14 @@ public class EchoPortal extends BlockWithEntity implements Portal {
 
     @Override
     protected BlockState rotate(BlockState state, BlockRotation rotation) {
-        switch (rotation) {
-            case COUNTERCLOCKWISE_90:
-            case CLOCKWISE_90:
-                switch (state.get(Properties.HORIZONTAL_AXIS)) {
-                    case Z:
-                        return state.with(Properties.HORIZONTAL_AXIS, Direction.Axis.X);
-                    case X:
-                        return state.with(Properties.HORIZONTAL_AXIS, Direction.Axis.Z);
-                    default:
-                        return state;
-                }
-            default:
-                return state;
-        }
+        return switch (rotation) {
+            case COUNTERCLOCKWISE_90, CLOCKWISE_90 -> switch (state.get(Properties.HORIZONTAL_AXIS)) {
+                case Z -> state.with(Properties.HORIZONTAL_AXIS, Direction.Axis.X);
+                case X -> state.with(Properties.HORIZONTAL_AXIS, Direction.Axis.Z);
+                default -> state;
+            };
+            default -> state;
+        };
     }
 
     @Override

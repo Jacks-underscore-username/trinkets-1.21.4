@@ -60,6 +60,7 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
         int minY = this.y + 8;
         int maxX = this.x + this.backgroundWidth - 8;
         int maxY = this.y + this.backgroundHeight - 8 - 18 - 8 - 18 * 3;
+        int x = minX;
         if (!items.isEmpty()) {
             if (loadingWidget != null) {
                 loadingWidget.setPosition(this.width * 2, this.height * 2);
@@ -67,6 +68,7 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
             }
             int buttonIndex = 0;
             for (var item : items) {
+                boolean forceLineBreak = item.getForceLineBreak() || item.getType().equals(DialogPage.Type.TEXT);
                 ClickableWidget widget = null;
                 if (item.getType().equals(DialogPage.Type.TEXT)) {
                     ShadowlessMultilineTextWidget subWidget = new ShadowlessMultilineTextWidget(item.getText(), textRenderer);
@@ -91,11 +93,17 @@ public class DialogScreen extends HandledScreen<DialogScreenHandler> {
                     throw new RuntimeException("Invalid widget type");
                 }
                 if (item.getAlignment().equals(DialogPage.Alignment.BOTTOM)) {
-                    maxY -= widget.getHeight();
-                    widget.setPosition(minX, maxY);
+                    widget.setPosition(x, maxY - widget.getHeight());
+                    if (forceLineBreak || x + widget.getWidth() > maxX) {
+                        maxY -= widget.getHeight();
+                        x = minX;
+                    } else x+=widget.getWidth();
                 } else {
-                    widget.setPosition(minX, minY);
-                    minY += widget.getHeight();
+                    widget.setPosition(x, minY);
+                    if (forceLineBreak || x + widget.getWidth() > maxX) {
+                        minY += widget.getHeight();
+                        x = minX;
+                    } else x+=widget.getWidth();
                 }
                 if (item.isClickable()) {
                     addDrawableChild(widget);

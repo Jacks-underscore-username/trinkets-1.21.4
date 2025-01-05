@@ -3,7 +3,7 @@ package jacksunderscoreusername.trinkets;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
-import jacksunderscoreusername.trinkets.trinkets.accursed_banner.Ghost;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.Ghost;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;

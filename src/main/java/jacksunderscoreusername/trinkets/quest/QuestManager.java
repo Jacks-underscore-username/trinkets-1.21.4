@@ -1,81 +1,138 @@
 package jacksunderscoreusername.trinkets.quest;
 
 import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import jacksunderscoreusername.trinkets.dialog.DialogHelper;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.dialog.DialogScreenHandler;
+import jacksunderscoreusername.trinkets.minix_io.TrueVillager;
+import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
-import net.minecraft.component.DataComponentTypes;
-import net.minecraft.component.type.WrittenBookContentComponent;
-import net.minecraft.entity.*;
-import net.minecraft.entity.passive.WanderingTraderEntity;
+import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.resource.featuretoggle.FeatureSet;
 import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.RawFilteredPair;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.village.TradeOffer;
-import net.minecraft.village.TradeOfferList;
-import net.minecraft.village.TradedItem;
+import net.minecraft.util.*;
 
-import java.util.List;
+import java.util.*;
 
 public class QuestManager {
 
     public static final ScreenHandlerType<DialogScreenHandler> DIALOG_SCREEN_HANDLER = Registry.register(Registries.SCREEN_HANDLER, Identifier.of(Main.MOD_ID, "dialog_screen"), new ScreenHandlerType<>(DialogScreenHandler::new, FeatureSet.empty()));
 
-    public static void initialize() {
-        UseEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (!world.isClient && entity instanceof WanderingTraderEntity trader && trader.getOffers().stream().noneMatch((offer) -> {
-                ItemStack stack = offer.getSellItem();
-                WrittenBookContentComponent data = stack.get(DataComponentTypes.WRITTEN_BOOK_CONTENT);
-                return data != null && data.title().raw().equals("Quest");
-            })) {
-                Main.state.data.questInitializedTraders.add(trader.getUuid());
-                TradeOfferList oldOffers = trader.getOffers();
-                ItemStack item = Items.WRITTEN_BOOK.getDefaultStack();
-                item.set(DataComponentTypes.WRITTEN_BOOK_CONTENT, new WrittenBookContentComponent(RawFilteredPair.of("Quest"), "Wandering Trader", 3, List.of(new RawFilteredPair[]{RawFilteredPair.of(Text.literal("No data"))}), true));
-                oldOffers.add(new TradeOffer(new TradedItem(Items.EMERALD, world.random.nextBetween(16, 32)), item, 1, 0, 1));
-            }
-            return ActionResult.PASS;
-        });
+    public static void finishTask(MinecraftServer server, StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int addedProgress) {
+        Main.state.data.currentPlayerQuests.get(entry.playerUuid()).remove(entry);
+        ServerPlayerEntity player = server.getPlayerManager().getPlayer(entry.playerUuid());
+        assert player != null;
+        currentPlayerTasks.get(player.getUuid()).remove(entry.villagerUuid());
+        VillagerEntity villager = (VillagerEntity) player.getServerWorld().getEntity(entry.villagerUuid());
+        assert villager != null;
+        Optional<Pair<ItemStack, Optional<ItemStack>>> reward = getReward(entry, entry.totalQuestProgress() + addedProgress);
+        if (reward.isEmpty())
+            startNewTask(player, villager, entry.totalQuestProgress() + addedProgress);
+        else {
+            DialogPage page = new DialogPage();
+            page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("Thanks for helping out, in thanks I've got something for you too").formatted(Formatting.BLACK)));
+            page.setOpenCallback((subPlayer, inventory) -> {
+                inventory.setStack(1, reward.get().getLeft());
+                if (reward.get().getRight().isPresent())
+                    inventory.setStack(2, reward.get().getRight().get());
+            });
+            DialogHelper.openScreen(player, villager, page);
+        }
+    }
 
-        UseEntityCallback.EVENT.register(((player, world, hand, entity, hitResult) -> {
-            if (entity instanceof LivingEntity livingEntity && !player.isSneaking()) {
-                if (!world.isClient && player instanceof ServerPlayerEntity serverPlayer) {
-                    DialogPage page = new DialogPage();
-                    page.addItems(
-                            new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("Want some ").formatted(Formatting.ITALIC, Formatting.DARK_GRAY).append(Text.literal("golden").formatted(Formatting.ITALIC, Formatting.GOLD)).append(Text.literal(" apples?").formatted(Formatting.ITALIC, Formatting.DARK_GRAY))),
-                            new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("It will cost you one diamond").formatted(Formatting.DARK_GRAY)));
-                    page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.BUTTON).setText(Text.literal("Sure!").formatted(Formatting.ITALIC)).setClickCallback((subPlayer, inventory) -> {
-                        if (inventory.getStack(0).isOf(Items.DIAMOND) && (inventory.getStack(1).isEmpty() || (inventory.getStack(1).isOf(Items.GOLDEN_APPLE) && inventory.getStack(1).getCount() < inventory.getStack(1).getMaxCount()))) {
-                            inventory.getStack(0).decrement(1);
-                            if (inventory.getStack(1).isEmpty()) {
-                                inventory.setStack(1, Items.GOLDEN_APPLE.getDefaultStack());
-                            } else inventory.getStack(1).increment(1);
+    public static void startNewTask(ServerPlayerEntity player, VillagerEntity villager, int totalQuestProgress) {
+        Task task = Tasks.getRandomTask(player.server, player, villager, totalQuestProgress);
+        if (!currentPlayerTasks.containsKey(player.getUuid()))
+            currentPlayerTasks.put(player.getUuid(), new HashMap<>());
+        currentPlayerTasks.get(player.getUuid()).put(villager.getUuid(), task);
+        if (!Main.state.data.currentPlayerQuests.containsKey(player.getUuid()))
+            Main.state.data.currentPlayerQuests.put(player.getUuid(), new ArrayList<>());
+        Main.state.data.currentPlayerQuests.get(player.getUuid()).add(task.entry);
+        DialogHelper.openScreen(player, villager, task.getPage());
+    }
 
-                            inventory.markDirty();
-                        }
-                    })
-                            .setTooltip(Text.literal("Click to buy").formatted(Formatting.ITALIC))
-                            .setAlignment(DialogPage.Alignment.BOTTOM));
-//                    for (var i = 0; i < 250; i++)
-//                        page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("X")));
-                    DialogHelper.openScreen(serverPlayer, livingEntity, page);
+    public static HashMap<UUID, HashMap<UUID, Task>> currentPlayerTasks = new HashMap<>();
+
+    private static final HashMap<Rarity, Integer> rarityMap = new HashMap<>();
+
+    static {
+        rarityMap.put(Rarity.UNCOMMON, 5);
+        rarityMap.put(Rarity.RARE, 10);
+        rarityMap.put(Rarity.EPIC, 15);
+    }
+
+    public static Optional<Pair<ItemStack, Optional<ItemStack>>> getReward(StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int totalQuestProgress) {
+        Random random = new Random(entry.questUuid().hashCode() + totalQuestProgress);
+        int maxQuestLength = 25;
+        int minQuestLength = 5;
+        if (totalQuestProgress < minQuestLength)
+            return Optional.empty();
+        if (totalQuestProgress >= maxQuestLength || random.nextInt(totalQuestProgress, maxQuestLength) == totalQuestProgress) {
+            ItemStack firstItem = null;
+            ItemStack secondItem = null;
+            for (var trinket : Arrays.stream(Trinkets.AllTrinkets).sorted((a, b) -> random.nextInt(-1, 1)).sorted(Comparator.comparingInt(t -> rarityMap.get(t.getDefaultStack().getRarity()))).toList()) {
+                if (Trinkets.canTrinketBeCreated(trinket.getId()) && rarityMap.get(trinket.getDefaultStack().getRarity()) <= totalQuestProgress) {
+                    firstItem = trinket.getDefaultStack();
+                    totalQuestProgress -= rarityMap.get(firstItem.getRarity());
+                    break;
                 }
-                return ActionResult.SUCCESS;
+            }
+            if (totalQuestProgress >= rarityMap.get(Rarity.EPIC) / 2) {
+                if (firstItem == null)
+                    firstItem = Trinkets.EPIC_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.EPIC)) / 2);
+                else
+                    secondItem = Trinkets.EPIC_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.EPIC)) / 2);
+                totalQuestProgress %= (rarityMap.get(Rarity.EPIC) / 2);
+            }
+            if (totalQuestProgress >= rarityMap.get(Rarity.RARE) / 2 && secondItem == null) {
+                if (firstItem == null)
+                    firstItem = Trinkets.RARE_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.RARE)) / 2);
+                else
+                    secondItem = Trinkets.RARE_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.RARE)) / 2);
+                totalQuestProgress %= (rarityMap.get(Rarity.RARE) / 2);
+            }
+            if (totalQuestProgress >= rarityMap.get(Rarity.UNCOMMON) / 2 && secondItem == null) {
+                if (firstItem == null)
+                    firstItem = Trinkets.UNCOMMON_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.UNCOMMON)) / 2);
+                else
+                    secondItem = Trinkets.UNCOMMON_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.UNCOMMON)) / 2);
+            }
+            if (secondItem == null)
+                return Optional.of(new Pair<>(firstItem, Optional.empty()));
+            return Optional.of(new Pair<>(firstItem, Optional.of(secondItem)));
+        }
+        return Optional.empty();
+    }
+
+    public static void initialize() {
+        UseEntityCallback.EVENT.register(((player, world, hand, entity, hitResult) -> {
+            if (entity instanceof VillagerEntity villager && !player.isSneaking() && player instanceof ServerPlayerEntity serverPlayer) {
+                if (currentPlayerTasks.containsKey(player.getUuid()) && currentPlayerTasks.get(player.getUuid()).containsKey(villager.getUuid())) {
+                    DialogHelper.openScreen(serverPlayer, villager, currentPlayerTasks.get(player.getUuid()).get(villager.getUuid()).getPage());
+                    return ActionResult.SUCCESS;
+                } else if (Main.state.data.currentPlayerQuests.containsKey(player.getUuid()) && Main.state.data.currentPlayerQuests.get(player.getUuid()).stream().anyMatch(entry -> entry.villagerUuid().equals(villager.getUuid()))) {
+                    Task task = Tasks.decodeTask(serverPlayer.server, Main.state.data.currentPlayerQuests.get(player.getUuid()).stream().filter(entry -> entry.villagerUuid().equals(villager.getUuid())).findAny().get());
+                    assert task != null;
+                    if (!currentPlayerTasks.containsKey(player.getUuid()))
+                        currentPlayerTasks.put(player.getUuid(), new HashMap<>());
+                    currentPlayerTasks.get(player.getUuid()).put(villager.getUuid(), task);
+                    DialogHelper.openScreen(serverPlayer, villager, task.getPage());
+                    return ActionResult.SUCCESS;
+                } else if (((TrueVillager) villager).trinkets_1_21_4_v2$canStartQuest(player)) {
+                    startNewTask(serverPlayer, villager, 0);
+                    return ActionResult.SUCCESS;
+                }
             }
             return ActionResult.PASS;
         }));
 
         DialogHelper.initialize();
-        Paper.initialize();
     }
 }

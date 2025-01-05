@@ -1,4 +1,4 @@
-package jacksunderscoreusername.trinkets.trinkets.accursed_banner;
+package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
