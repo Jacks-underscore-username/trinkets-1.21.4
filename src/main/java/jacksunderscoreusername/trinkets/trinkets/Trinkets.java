@@ -2,6 +2,7 @@ package jacksunderscoreusername.trinkets.trinkets;
 
 import com.google.common.collect.ImmutableList;
 import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
 import jacksunderscoreusername.trinkets.trinkets.soul_lamp.SoulLamp;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
 import jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal.EternalBonemeal;
@@ -36,8 +37,9 @@ public class Trinkets {
     public static final Trinket ETERNAL_BONEMEAL = register(EternalBonemeal.id, EternalBonemeal::new, EternalBonemeal.getSettings());
     public static final Trinket SUSPICIOUS_SUBSTANCE = register(SuspiciousSubstance.id, SuspiciousSubstance::new, SuspiciousSubstance.getSettings());
     public static final Trinket SOUL_LAMP = register(SoulLamp.id, SoulLamp::new, SoulLamp.getSettings());
+    public static final Trinket FIRE_WAND = register(FireWand.id, FireWand::new, FireWand.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP, FIRE_WAND};
 
     public static final Item UNCOMMON_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, UncommonTrinketDust.id)), UncommonTrinketDust::new, UncommonTrinketDust.getSettings());
     public static final Item RARE_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, RareTrinketDust.id)), RareTrinketDust::new, RareTrinketDust.getSettings());
