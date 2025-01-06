@@ -59,19 +59,19 @@ public class GravityDisruptor extends Trinket {
     }
 
     public static int getEffectRadius(int level) {
-        return 10 + (level - 1) * 3;
+        return 10 + (level - 1) * 5;
     }
 
     public static int getMinEffectTime(int level) {
-        return 10 + (level - 1);
+        return 10 + (level - 1) * 2;
     }
 
     public static int getMaxEffectTime(int level) {
-        return 15 + (level - 1) * 2;
+        return 15 + (level - 1) * 4;
     }
 
     public static int getMaxEffectAmp(int level) {
-        return level - 1;
+        return level * 2;
     }
 
     public void initialize() {

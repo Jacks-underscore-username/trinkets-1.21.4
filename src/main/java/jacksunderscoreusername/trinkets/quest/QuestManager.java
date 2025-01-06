@@ -32,7 +32,7 @@ public class QuestManager {
         currentPlayerTasks.get(player.getUuid()).remove(entry.villagerUuid());
         VillagerEntity villager = (VillagerEntity) player.getServerWorld().getEntity(entry.villagerUuid());
         assert villager != null;
-        Optional<Pair<ItemStack, Optional<ItemStack>>> reward = getReward(entry, entry.totalQuestProgress() + addedProgress);
+        Optional<Pair<ItemStack, ItemStack>> reward = getReward(entry, entry.totalQuestProgress() + addedProgress);
         if (reward.isEmpty())
             startNewTask(player, villager, entry.totalQuestProgress() + addedProgress);
         else {
@@ -40,8 +40,7 @@ public class QuestManager {
             page.addItems(new DialogPage.DialogPageItem(DialogPage.Type.TEXT).setText(Text.literal("Thanks for helping out, in thanks I've got something for you too").formatted(Formatting.BLACK)));
             page.setOpenCallback((subPlayer, inventory) -> {
                 inventory.setStack(1, reward.get().getLeft());
-                if (reward.get().getRight().isPresent())
-                    inventory.setStack(2, reward.get().getRight().get());
+                inventory.setStack(2, reward.get().getRight());
             });
             DialogHelper.openScreen(player, villager, page);
         }
@@ -68,7 +67,7 @@ public class QuestManager {
         rarityMap.put(Rarity.EPIC, 15);
     }
 
-    public static Optional<Pair<ItemStack, Optional<ItemStack>>> getReward(StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int totalQuestProgress) {
+    public static Optional<Pair<ItemStack, ItemStack>> getReward(StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int totalQuestProgress) {
         Random random = new Random(entry.questUuid().hashCode() + totalQuestProgress);
         int maxQuestLength = 25;
         int minQuestLength = 5;
@@ -80,33 +79,25 @@ public class QuestManager {
             for (var trinket : Arrays.stream(Trinkets.AllTrinkets).sorted((a, b) -> random.nextInt(-1, 1)).sorted(Comparator.comparingInt(t -> rarityMap.get(t.getDefaultStack().getRarity()))).toList()) {
                 if (Trinkets.canTrinketBeCreated(trinket.getId()) && rarityMap.get(trinket.getDefaultStack().getRarity()) <= totalQuestProgress) {
                     firstItem = trinket.getDefaultStack();
-                    totalQuestProgress -= rarityMap.get(firstItem.getRarity());
+//                    totalQuestProgress -= rarityMap.get(firstItem.getRarity());
                     break;
                 }
             }
-            if (totalQuestProgress >= rarityMap.get(Rarity.EPIC) / 2) {
-                if (firstItem == null)
-                    firstItem = Trinkets.EPIC_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.EPIC)) / 2);
-                else
-                    secondItem = Trinkets.EPIC_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.EPIC)) / 2);
-                totalQuestProgress %= (rarityMap.get(Rarity.EPIC) / 2);
+            while (firstItem == null || secondItem == null) {
+                Rarity rarity = List.of(Rarity.UNCOMMON, Rarity.RARE, Rarity.EPIC).get(random.nextInt(3));
+                ItemStack item = switch (rarity) {
+                    case COMMON -> null;
+                    case UNCOMMON ->
+                            Trinkets.UNCOMMON_TRINKET_DUST.getDefaultStack().copyWithCount(Math.ceilDiv(totalQuestProgress, rarityMap.get(rarity)));
+                    case RARE ->
+                            Trinkets.RARE_TRINKET_DUST.getDefaultStack().copyWithCount(Math.ceilDiv(totalQuestProgress, rarityMap.get(rarity)));
+                    case EPIC ->
+                            Trinkets.EPIC_TRINKET_DUST.getDefaultStack().copyWithCount(Math.ceilDiv(totalQuestProgress, rarityMap.get(rarity)));
+                };
+                if (firstItem == null) firstItem = item;
+                else secondItem = item;
             }
-            if (totalQuestProgress >= rarityMap.get(Rarity.RARE) / 2 && secondItem == null) {
-                if (firstItem == null)
-                    firstItem = Trinkets.RARE_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.RARE)) / 2);
-                else
-                    secondItem = Trinkets.RARE_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.RARE)) / 2);
-                totalQuestProgress %= (rarityMap.get(Rarity.RARE) / 2);
-            }
-            if (totalQuestProgress >= rarityMap.get(Rarity.UNCOMMON) / 2 && secondItem == null) {
-                if (firstItem == null)
-                    firstItem = Trinkets.UNCOMMON_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.UNCOMMON)) / 2);
-                else
-                    secondItem = Trinkets.UNCOMMON_TRINKET_DUST.getDefaultStack().copyWithCount(totalQuestProgress / (rarityMap.get(Rarity.UNCOMMON)) / 2);
-            }
-            if (secondItem == null)
-                return Optional.of(new Pair<>(firstItem, Optional.empty()));
-            return Optional.of(new Pair<>(firstItem, Optional.of(secondItem)));
+            return Optional.of(new Pair<>(firstItem, secondItem));
         }
         return Optional.empty();
     }

@@ -19,6 +19,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
 import net.minecraft.world.LocalDifficulty;
@@ -27,9 +28,10 @@ import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.EnumSet;
+import java.util.List;
 
 public class Ghost extends VexEntity {
-    String sourceEntity;
+    public String sourceEntity;
 
     public Ghost(EntityType<? extends Ghost> entityType, World world) {
         super(entityType, world);
@@ -63,8 +65,8 @@ public class Ghost extends VexEntity {
         this.goalSelector.add(0, new SwimGoal(this));
         this.goalSelector.add(4, new Ghost.ChargeTargetGoal());
         this.goalSelector.add(8, new Ghost.LookAtTargetGoal());
-        this.targetSelector.add(1, new RevengeGoal(this).setGroupRevenge());
-        this.targetSelector.add(3, new ActiveCursedTargetGoal<>(this, true));
+        this.targetSelector.add(3, new RevengeGoal(this).setGroupRevenge());
+        this.targetSelector.add(10, new ActiveCursedTargetGoal<>(this, true));
     }
 
     @Override
@@ -78,6 +80,8 @@ public class Ghost extends VexEntity {
     @Override
     public void tick() {
         super.tick();
+        if (this.getStatusEffect(CursedEffect.CURSED) != null)
+            this.removeStatusEffect(CursedEffect.CURSED);
         if (this.getWorld().isClient) {
             if (this.random.nextInt(10) == 0 || this.isCharging()) {
                 this.getWorld()
@@ -95,15 +99,15 @@ public class Ghost extends VexEntity {
     @Override
     public void readCustomDataFromNbt(NbtCompound nbt) {
         super.readCustomDataFromNbt(nbt);
-        if (nbt.contains("LifeTicks")) {
-            this.sourceEntity= (nbt.getString("SourceEntity"));
+        if (nbt.contains("SourceEntity")) {
+            this.sourceEntity = (nbt.getString("SourceEntity"));
         }
     }
 
     @Override
     public void writeCustomDataToNbt(NbtCompound nbt) {
         super.writeCustomDataToNbt(nbt);
-        if (this.sourceEntity!=null) {
+        if (this.sourceEntity != null) {
             nbt.putString("SourceEntity", this.sourceEntity);
         }
     }

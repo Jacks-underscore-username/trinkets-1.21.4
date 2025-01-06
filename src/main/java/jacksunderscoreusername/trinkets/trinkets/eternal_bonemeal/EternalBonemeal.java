@@ -61,7 +61,7 @@ public class EternalBonemeal extends Trinket {
     }
 
     public static int getRadius(int level) {
-        return 5 + (level - 1) * 3;
+        return 10 + (level - 1) * 5;
     }
 
     public void initialize() {

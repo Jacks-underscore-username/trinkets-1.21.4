@@ -12,10 +12,7 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Hand;
-import net.minecraft.util.Rarity;
+import net.minecraft.util.*;
 import net.minecraft.world.World;
 
 import java.util.List;
@@ -151,7 +148,9 @@ public class SuspiciousSubstance extends Trinket {
         StatusEffectInstance[] effects = getEffects(level);
         tooltip.add(Text.literal("Right click with this item to gain the following effects for " + Utils.prettyTime(effects[0].getDuration() / 20, true)).formatted(Formatting.AQUA));
         for (var effect : effects) {
-            tooltip.add(Text.literal(" * " + effect.getEffectType().getIdAsString() + " " + (effect.getAmplifier() + 1)).formatted(Formatting.AQUA));
+            String typeName = effect.getEffectType().getKey().get().getValue().getPath();
+            typeName = typeName.substring(0, 1).toUpperCase() + typeName.substring(1);
+            tooltip.add(Text.literal(" - " + typeName + " " + (effect.getAmplifier() + 1)).formatted(Formatting.AQUA));
         }
     }
 }

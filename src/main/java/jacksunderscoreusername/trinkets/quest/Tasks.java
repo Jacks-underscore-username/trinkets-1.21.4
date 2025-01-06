@@ -3,6 +3,7 @@ package jacksunderscoreusername.trinkets.quest;
 import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import jacksunderscoreusername.trinkets.quest.tasks.GiveItem;
+import jacksunderscoreusername.trinkets.quest.tasks.KillMob;
 import jacksunderscoreusername.trinkets.quest.tasks.LocalGolem;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.server.MinecraftServer;
@@ -41,6 +42,7 @@ public class Tasks {
     static {
         register(LocalGolem.id, LocalGolem::decode);
         register(GiveItem.id, GiveItem::decode);
+        register(KillMob.id, KillMob::decode);
     }
 
     public static Task decodeTask(MinecraftServer server, StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry) {
@@ -60,7 +62,11 @@ public class Tasks {
                 if (task != null) return task;
             }
             if (random.nextBoolean()) {
-                return GiveItem.create(server, player, villager, totalQuestProgress);
+                if (random.nextBoolean()) {
+                    return GiveItem.create(server, player, villager, totalQuestProgress);
+                }
+            } else if (random.nextBoolean()) {
+                return KillMob.create(server, player, villager, totalQuestProgress);
             }
         }
     }

@@ -62,6 +62,10 @@ public class ActivatedEchoShard extends Trinket {
         super(settings);
     }
 
+    public static int getMaxRange(int level) {
+        return level * 500;
+    }
+
     public void initialize() {
 
         // Setup all the used on portal interactions.
@@ -109,7 +113,7 @@ public class ActivatedEchoShard extends Trinket {
                     //First see if the portal is too far.
                     StoredPortalComponent.StoredPortal portalComponent = itemStack.get(STORED_PORTAL);
 
-                    int maxDistance = itemStack.get(TRINKET_DATA) == null ? 0 : Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level() * 250;
+                    int maxDistance = itemStack.get(TRINKET_DATA) == null ? 0 : getMaxRange(Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level());
 
                     // Calculate the positions as if they were in the overworld.
                     BlockPos overworldHere = world.getRegistryKey().equals(World.NETHER) ? pos.multiply(8).withY(pos.getY() / 8) : pos;
@@ -239,7 +243,7 @@ public class ActivatedEchoShard extends Trinket {
         // Get the stored data in the item.
         StoredPortalComponent.StoredPortal itemData = stack.get(STORED_PORTAL);
 
-        int maxDistance = stack.get(TRINKET_DATA) == null ? 0 : Objects.requireNonNull(stack.get(TRINKET_DATA)).level() * 250;
+        int maxDistance = stack.get(TRINKET_DATA) == null ? 0 : getMaxRange(Objects.requireNonNull(stack.get(TRINKET_DATA)).level());
 
         // If the item has no stored portal.
         if (itemData == null || !itemData.hasPortal()) {

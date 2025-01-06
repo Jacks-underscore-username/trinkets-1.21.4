@@ -26,6 +26,8 @@ import net.minecraft.world.dimension.NetherPortal;
 import net.minecraft.world.tick.ScheduledTickView;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
+
 // It has to extend BlockWithEntity to have block data, but also needs to implement portal to be used as a portal without doing everything itself.
 public class EchoPortal extends BlockWithEntity implements Portal {
     public static final MapCodec<EchoPortal> CODEC = createCodec(EchoPortal::new);
@@ -159,7 +161,7 @@ public class EchoPortal extends BlockWithEntity implements Portal {
         Direction.Axis axis2 = state.get(Properties.HORIZONTAL_AXIS);
         boolean bl = axis2 != axis && axis.isHorizontal();
 
-        if (!((EchoPortalBlockEntity) world.getBlockEntity(pos)).checkForNetherPortal) {
+        if (!((EchoPortalBlockEntity) Objects.requireNonNull(world.getBlockEntity(pos))).checkForNetherPortal) {
             return super.getStateForNeighborUpdate(state, world, tickView, pos, direction, neighborPos, neighborState, random);
         } else {
             return !bl && !neighborState.isOf(this) && !NetherPortal.getOnAxis(world, pos, axis2).wasAlreadyValid()

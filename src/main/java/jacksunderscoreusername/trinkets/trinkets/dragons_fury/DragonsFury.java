@@ -41,7 +41,7 @@ public class DragonsFury extends Trinket {
         settings = settings
                 .maxCount(1)
                 .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
-                .rarity(Rarity.RARE);
+                .rarity(Rarity.UNCOMMON);
         return settings;
     }
 
@@ -108,10 +108,10 @@ public class DragonsFury extends Trinket {
         int duration = getDuration(level);
         int amplifier = getAmplifier(level);
 
-        tooltip.add(Text.literal("Right click with this item to shoot").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("a dragon fireball that will create an").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("effect cloud of instant damage " + (amplifier + 1)).formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("with a radius of " + radius + " for " + duration + " seconds").formatted(Formatting.AQUA));
+        tooltip.add(Text.literal("Right click with this item to shoot").formatted(Formatting.YELLOW));
+        tooltip.add(Text.literal("a dragon fireball that will create an").formatted(Formatting.YELLOW));
+        tooltip.add(Text.literal("effect cloud of instant damage " + (amplifier + 1)).formatted(Formatting.YELLOW));
+        tooltip.add(Text.literal("with a radius of " + radius + " for " + duration + " seconds").formatted(Formatting.YELLOW));
 
         if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
             tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));

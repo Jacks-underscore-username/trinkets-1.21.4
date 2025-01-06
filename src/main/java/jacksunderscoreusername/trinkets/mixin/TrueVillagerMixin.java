@@ -16,7 +16,6 @@ import net.minecraft.util.Uuids;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.LocalDifficulty;
 import net.minecraft.world.ServerWorldAccess;
-import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,10 +24,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-import java.util.Optional;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Mixin(VillagerEntity.class)
 public abstract class TrueVillagerMixin implements TrueVillager {
@@ -36,16 +32,7 @@ public abstract class TrueVillagerMixin implements TrueVillager {
     public abstract Brain<VillagerEntity> getBrain();
 
     @Shadow
-    public abstract void playWorkSound();
-
-    @Shadow
     public abstract int getReputation(PlayerEntity player);
-
-    @Shadow
-    private @Nullable PlayerEntity lastCustomer;
-
-    @Shadow
-    protected abstract boolean needsRestock();
 
     @Unique
     public GlobalPos trinkets_1_21_4_v2$firstHome = null;
@@ -54,7 +41,7 @@ public abstract class TrueVillagerMixin implements TrueVillager {
     @Unique
     public boolean trinkets_1_21_4_v2$wasChildOrZombie = false;
     @Unique
-    public Set<UUID> trinkets_1_21_4_v2$alreadyQuestedPlayers = Set.of();
+    public Set<UUID> trinkets_1_21_4_v2$alreadyQuestedPlayers = new HashSet<>();
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void tick(CallbackInfo ci) {
@@ -146,9 +133,11 @@ public abstract class TrueVillagerMixin implements TrueVillager {
         boolean sameHome = trinkets_1_21_4_v2$firstHome != null && homeMemory != null && homeMemory.isPresent() && homeMemory.get().equals(trinkets_1_21_4_v2$firstHome);
         boolean sameJob = trinkets_1_21_4_v2$firstJob != null && jobMemory != null && jobMemory.isPresent() && jobMemory.get().equals(trinkets_1_21_4_v2$firstJob);
         boolean result = willGiveQuestsToPlayer && hasEnoughReputation && hasNotQuested && wasNeverChildOrZombie && sameHome && sameJob;
-        if (!result) {
+        if (result) {
+            trinkets_1_21_4_v2$alreadyQuestedPlayers.add(player.getUuid());
+        } else {
             Main.LOGGER.info("willGiveQuestsToPlayer: {}", willGiveQuestsToPlayer);
-            Main.LOGGER.info("hasEnoughReputation: {}", hasEnoughReputation);
+            Main.LOGGER.info("hasEnoughReputation: {} ({} / {})", hasEnoughReputation, playerReputation, neededReputation);
             Main.LOGGER.info("hasNotQuested: {}", hasNotQuested);
             Main.LOGGER.info("wasNeverChildOrZombie: {}", wasNeverChildOrZombie);
             Main.LOGGER.info("sameHome: {}", sameHome);
