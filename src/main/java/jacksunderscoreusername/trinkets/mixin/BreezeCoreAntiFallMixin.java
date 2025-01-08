@@ -5,7 +5,9 @@ import jacksunderscoreusername.trinkets.minix_io.BreezeCoreAntiFall;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.sound.SoundEvent;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -15,7 +17,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import java.util.Objects;
 
 @Mixin(PlayerEntity.class)
-public class BreezeCoreAntiFallMixin implements BreezeCoreAntiFall {
+public abstract class BreezeCoreAntiFallMixin implements BreezeCoreAntiFall {
+    @Shadow
+    public abstract void playSound(SoundEvent sound, float volume, float pitch);
+
     @Unique
     private boolean trinkets_1_21_4_v2$BreezeCoreAntiFall = false;
 
@@ -23,9 +28,13 @@ public class BreezeCoreAntiFallMixin implements BreezeCoreAntiFall {
     private long trinkets_1_21_4_v2$BreezeCoreAntiFallStart = 0;
 
     @Unique
+    private long trinkets_1_21_4_v2$BreezeCoreTimeOnGround = 0;
+
+    @Unique
     public void Trinkets_1_21_4_v2$setBreezeCoreAntiFall(MinecraftServer server) {
         trinkets_1_21_4_v2$BreezeCoreAntiFall = true;
         trinkets_1_21_4_v2$BreezeCoreAntiFallStart = server.getTicks();
+        trinkets_1_21_4_v2$BreezeCoreTimeOnGround = 0;
     }
 
     @Inject(method = "handleFallDamage", at = @At("HEAD"), cancellable = true)
@@ -40,6 +49,9 @@ public class BreezeCoreAntiFallMixin implements BreezeCoreAntiFall {
                 player.isOnGround() &&
                 trinkets_1_21_4_v2$BreezeCoreAntiFall &&
                 Objects.requireNonNull(player.getServer()).getTicks() - trinkets_1_21_4_v2$BreezeCoreAntiFallStart > 20)
-            trinkets_1_21_4_v2$BreezeCoreAntiFall = false;
+            if (player.getServer().getTicks() - trinkets_1_21_4_v2$BreezeCoreTimeOnGround > 10 && trinkets_1_21_4_v2$BreezeCoreTimeOnGround != 0)
+                trinkets_1_21_4_v2$BreezeCoreAntiFall = false;
+            else if (trinkets_1_21_4_v2$BreezeCoreTimeOnGround == 0)
+                trinkets_1_21_4_v2$BreezeCoreTimeOnGround = player.getServer().getTicks();
     }
 }

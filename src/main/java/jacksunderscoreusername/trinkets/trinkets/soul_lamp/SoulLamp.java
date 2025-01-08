@@ -64,15 +64,15 @@ public class SoulLamp extends Trinket {
     }
 
     public static int getEffectTime(int level) {
-        return 60 + 30 * (level - 1);
+        return 90 * level;
     }
 
     public static int getEffectAmp(int level) {
-        return level - 1;
+        return level;
     }
 
     public static int getSpawnCount(int level) {
-        return 5 + (level - 1) * 3;
+        return 10 + (level - 1) * 5;
     }
 
     public void initialize() {

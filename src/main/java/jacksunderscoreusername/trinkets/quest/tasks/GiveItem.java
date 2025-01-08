@@ -60,7 +60,7 @@ public class GiveItem extends Task {
         validItems.put(Items.TRIAL_KEY, new validItem(10, 5, "i've heard about some new rare item, could you bring me %s trial keyS?"));
         validItems.put(Items.EXPERIENCE_BOTTLE, new validItem(5, 3, "i've heard about some new rare item, could you bring me %s experience bottleS?"));
         validItems.put(Items.CREAKING_HEART, new validItem(10, 3, "i've heard about some new rare item, could you bring me %s creaking heartS?"));
-        validItems.put(Items.HEART_OF_THE_SEA, new validItem(10, 1, "i've heard about some new rare item, could you bring me %s heartS of the sea?"));
+        validItems.put(Items.HEART_OF_THE_SEA, new validItem(5, 1, "i've heard about some new rare item, could you bring me %s heartS of the sea?"));
         validItems.put(Items.ANCIENT_DEBRIS, new validItem(10, 16, "i've heard about some new rare item, could you bring me %s ancient debris?"));
         validItems.put(Items.AMETHYST_SHARD, new validItem(5, 32, "i've heard about some new rare item, could you bring me %s amethyst shardS?"));
         validItems.put(Items.SHULKER_SHELL, new validItem(8, 16, "i've heard about some new rare item, could you bring me %s shulker shellS?"));
