@@ -15,8 +15,6 @@ import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.world.ServerWorld;
-import net.minecraft.sound.SoundCategory;
-import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
 import net.minecraft.util.math.BlockPos;
@@ -149,8 +147,10 @@ public class FireWand extends Trinket {
         int range = getRange(level);
         int maxPower = getMaxExplosionPower(level);
 
-        tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("shoot an explosive " + range + " blocks").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("with a power of " + maxPower).formatted(Formatting.AQUA));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to apply").formatted(color));
+        tooltip.add(Text.literal("shoot an explosive ").formatted(color).append(Text.literal(String.valueOf(range)).formatted(color, Formatting.BOLD).append(Text.literal(" blocks").formatted(color))));
+        tooltip.add(Text.literal("with a power of ").formatted(color).append(Text.literal(String.valueOf(maxPower)).formatted(color, Formatting.BOLD)));
     }
 }

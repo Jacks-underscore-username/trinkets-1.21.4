@@ -131,10 +131,12 @@ public class SoulLamp extends Trinket {
         int amp = getEffectAmp(level);
         int spawns = getSpawnCount(level);
 
-        tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.LIGHT_PURPLE));
-        tooltip.add(Text.literal("curse " + (amp + 1) + " to all other living entities").formatted(Formatting.LIGHT_PURPLE));
-        tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.LIGHT_PURPLE));
-        tooltip.add(Text.literal("centered on you for " + Utils.prettyTime(time, true)).formatted(Formatting.LIGHT_PURPLE));
-        tooltip.add(Text.literal("and spawn " + spawns + " ghosts").formatted(Formatting.LIGHT_PURPLE));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to apply").formatted(color));
+        tooltip.add(Text.literal("curse ").formatted(color).append(Text.literal(String.valueOf(amp + 1)).formatted(color, Formatting.BOLD)).append(Text.literal(" to all other living entities").formatted(color)));
+        tooltip.add(Text.literal("within a ").formatted(color).append(Text.literal(String.valueOf(radius * 2)).formatted(color, Formatting.BOLD)).append(Text.literal(" block wide cube").formatted(color)));
+        tooltip.add(Text.literal("centered on you for ").formatted(color).append(Text.literal(Utils.prettyTime(time, true)).formatted(color, Formatting.BOLD)));
+        tooltip.add(Text.literal("and spawn ").formatted(color).append(Text.literal(String.valueOf(spawns)).formatted(color, Formatting.BOLD)).append(Text.literal(" ghosts").formatted(color)));
     }
 }

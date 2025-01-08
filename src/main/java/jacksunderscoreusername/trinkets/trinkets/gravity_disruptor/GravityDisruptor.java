@@ -127,9 +127,11 @@ public class GravityDisruptor extends Trinket {
         int maxTime = getMaxEffectTime(level);
         int maxAmp = getMaxEffectAmp(level);
 
-        tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("levitation 1" + (maxAmp == 0 ? "" : "-" + (maxAmp + 1)) + " to all other living entities").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("centered on you for " + minTime + "-" + maxTime + " seconds").formatted(Formatting.AQUA));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to apply").formatted(color));
+        tooltip.add(Text.literal("levitation ").formatted(color).append(Text.literal("1" + (maxAmp == 0 ? "" : "-" + (maxAmp + 1))).formatted(color, Formatting.BOLD)).append(Text.literal(" to all other living entities").formatted(color)));
+        tooltip.add(Text.literal("within a ").formatted(color).append(Text.literal(String.valueOf(radius * 2)).formatted(color, Formatting.BOLD)).append(Text.literal(" block wide cube").formatted(color)));
+        tooltip.add(Text.literal("centered on you for ").formatted(color).append(Text.literal(minTime + "-" + maxTime).formatted(color, Formatting.BOLD)).append(Text.literal(" seconds").formatted(color)));
     }
 }

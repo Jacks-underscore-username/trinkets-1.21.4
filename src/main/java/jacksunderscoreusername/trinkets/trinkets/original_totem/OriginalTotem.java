@@ -83,8 +83,8 @@ public class OriginalTotem extends Trinket {
         }
         int level = Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level();
         int duration = getEffectTime(level);
-                StatusEffectInstance effect = new StatusEffectInstance(InvincibleEffect.INVINCIBLE, duration * 20, 0);
-                user.addStatusEffect(effect, user);
+        StatusEffectInstance effect = new StatusEffectInstance(InvincibleEffect.INVINCIBLE, duration * 20, 0);
+        user.addStatusEffect(effect, user);
         itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 30 * 60, 30 * 60));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ITEM_TOTEM_USE, SoundCategory.PLAYERS, 1, 2);
@@ -105,7 +105,9 @@ public class OriginalTotem extends Trinket {
         int level = Objects.requireNonNull(stack.get(TRINKET_DATA)).level();
         int duration = getEffectTime(level);
 
-        tooltip.add(Text.literal("Right click with this item to gain").formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("invincibility for "+Utils.prettyTime(duration,true)).formatted(Formatting.YELLOW));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to gain").formatted(color));
+        tooltip.add(Text.literal("invincibility for ").formatted(color).append(Text.literal(Utils.prettyTime(duration, true)).formatted(color, Formatting.BOLD)));
     }
 }

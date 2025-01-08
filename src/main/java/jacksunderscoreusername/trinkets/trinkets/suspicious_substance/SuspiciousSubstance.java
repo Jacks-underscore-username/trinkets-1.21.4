@@ -4,16 +4,22 @@ import jacksunderscoreusername.trinkets.*;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.screen.GrindstoneScreenHandler;
+import net.minecraft.screen.slot.Slot;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.*;
+import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldEvents;
 
 import java.util.List;
 import java.util.Objects;
@@ -146,11 +152,15 @@ public class SuspiciousSubstance extends Trinket {
 
         int level = Objects.requireNonNull(stack.get(TRINKET_DATA)).level();
         StatusEffectInstance[] effects = getEffects(level);
-        tooltip.add(Text.literal("Right click with this item to gain the following effects for " + Utils.prettyTime(effects[0].getDuration() / 20, true)).formatted(Formatting.AQUA));
+
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to gain the following effects for " + Utils.prettyTime(effects[0].getDuration() / 20, true)).formatted(color));
         for (var effect : effects) {
             String typeName = effect.getEffectType().getKey().get().getValue().getPath();
             typeName = typeName.substring(0, 1).toUpperCase() + typeName.substring(1);
-            tooltip.add(Text.literal(" - " + typeName + " " + (effect.getAmplifier() + 1)).formatted(Formatting.AQUA));
+            tooltip.add(Text.literal(" - " + typeName + " " + (effect.getAmplifier() + 1)).formatted(color, Formatting.BOLD));
         }
     }
 }
+

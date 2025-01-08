@@ -132,13 +132,15 @@ public class BreezeCore extends TrinketWithCharges {
         int chargeTime = getChargeTime(level);
         String time = stack.get(CooldownDataComponent.COOLDOWN) == null ? "" : Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false);
 
-        int charges = stack.get(ChargesDataComponent.CHARGES) == null ? 0 : Objects.requireNonNull(stack.get(ChargesDataComponent.CHARGES)).charges();
-        tooltip.add(Text.literal("Current charges: " + charges + " / " + maxCharges).formatted(Formatting.AQUA, Formatting.ITALIC));
-        tooltip.add(Text.literal("Next charge: " + time).formatted(Formatting.AQUA, Formatting.ITALIC));
+        Formatting color = Trinkets.getTrinketColor(this);
 
-        tooltip.add(Text.literal("Right click with this item to consume").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("1 charge and launch yourself").formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("forward with a force of " + force).formatted(Formatting.AQUA));
-        tooltip.add(Text.literal("Gains 1 charge every " + Utils.prettyTime(chargeTime, true)).formatted(Formatting.AQUA));
+        int charges = stack.get(ChargesDataComponent.CHARGES) == null ? 0 : Objects.requireNonNull(stack.get(ChargesDataComponent.CHARGES)).charges();
+        tooltip.add(Text.literal("Current charges: " + charges + " / ").formatted(color, Formatting.ITALIC).append(Text.literal(String.valueOf(maxCharges)).formatted(color, Formatting.ITALIC, Formatting.BOLD)));
+        tooltip.add(Text.literal("Next charge: " + time).formatted(color, Formatting.ITALIC));
+
+        tooltip.add(Text.literal("Right click with this item to consume").formatted(color));
+        tooltip.add(Text.literal("1 charge and launch yourself").formatted(color));
+        tooltip.add(Text.literal("forward with a force of " + force).formatted(color));
+        tooltip.add(Text.literal("Gains 1 charge every ").formatted(color).append(Text.literal(Utils.prettyTime(chargeTime, true)).formatted(color, Formatting.BOLD)));
     }
 }

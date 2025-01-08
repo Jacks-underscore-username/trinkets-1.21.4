@@ -101,6 +101,15 @@ public class Trinkets {
         throw new RuntimeException("Invalid something I'm sure");
     }
 
+    public static Formatting getTrinketColor(Trinket trinket) {
+        return switch (trinket.getDefaultStack().getRarity()) {
+            case Rarity.EPIC -> Formatting.LIGHT_PURPLE;
+            case Rarity.RARE -> Formatting.AQUA;
+            case Rarity.UNCOMMON -> Formatting.YELLOW;
+            default -> throw new RuntimeException("Invalid trinket rarity");
+        };
+    }
+
     public static void initialize() {
         rarityColors.put(Rarity.COMMON, Formatting.WHITE);
         rarityColors.put(Rarity.UNCOMMON, Formatting.YELLOW);

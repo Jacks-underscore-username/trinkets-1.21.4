@@ -172,8 +172,10 @@ public class EternalBonemeal extends Trinket {
         int level = Objects.requireNonNull(stack.get(TRINKET_DATA)).level();
         int radius = getRadius(level);
 
-        tooltip.add(Text.literal("Right click with this item to grow").formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("everything within the " + radius * 2 + " block").formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("wide cube centered on you").formatted(Formatting.YELLOW));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to grow").formatted(color));
+        tooltip.add(Text.literal("everything within a ").formatted(color).append(Text.literal(String.valueOf(radius * 2)).formatted(color, Formatting.BOLD)).append(Text.literal(" block").formatted(color)));
+        tooltip.add(Text.literal("wide cube centered on you").formatted(color));
     }
 }

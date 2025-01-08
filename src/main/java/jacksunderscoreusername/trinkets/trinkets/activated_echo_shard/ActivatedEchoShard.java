@@ -26,6 +26,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
 import net.minecraft.world.World;
 
+import java.text.Normalizer;
 import java.util.List;
 import java.util.Objects;
 
@@ -245,16 +246,18 @@ public class ActivatedEchoShard extends Trinket {
 
         int maxDistance = stack.get(TRINKET_DATA) == null ? 0 : getMaxRange(Objects.requireNonNull(stack.get(TRINKET_DATA)).level());
 
+        Formatting color = Trinkets.getTrinketColor(this);
+
         // If the item has no stored portal.
         if (itemData == null || !itemData.hasPortal()) {
-            tooltip.add(Text.literal("No portal has been set").formatted(Formatting.LIGHT_PURPLE));
-            tooltip.add(Text.literal("Right click a nether portal to link").formatted(Formatting.LIGHT_PURPLE));
+            tooltip.add(Text.literal("No portal has been set").formatted(color));
+            tooltip.add(Text.literal("Right click a nether portal to link").formatted(color));
         } else {
             // If the item has a stored portal (regardless of whether it still exists).
-            tooltip.add(Text.literal("Linked to a portal at ").formatted(Formatting.LIGHT_PURPLE).append(Text.literal("(" + itemData.pos().getX() + ", " + itemData.pos().getY() + ", " + itemData.pos().getZ() + ") in dimension " + itemData.dim().getValue().getPath()).formatted(Formatting.AQUA)));
-            tooltip.add(Text.literal("Right click a different nether portal to link them").formatted(Formatting.LIGHT_PURPLE));
-            tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(Formatting.LIGHT_PURPLE));
+            tooltip.add(Text.literal("Linked to a portal at ").formatted(color).append(Text.literal("(" + itemData.pos().getX() + ", " + itemData.pos().getY() + ", " + itemData.pos().getZ() + ") in dimension " + itemData.dim().getValue().getPath()).formatted(Formatting.AQUA)));
+            tooltip.add(Text.literal("Right click a different nether portal to link them").formatted(color));
+            tooltip.add(Text.literal("SHIFT + Right click to clear linked portal").formatted(color));
         }
-        tooltip.add(Text.literal("Max range: " + maxDistance + " blocks in the overworld").formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("Max range: ").formatted(color).append(Text.literal(String.valueOf(maxDistance)).formatted(color, Formatting.BOLD)).append(Text.literal(" blocks in the overworld").formatted(color)));
     }
 }

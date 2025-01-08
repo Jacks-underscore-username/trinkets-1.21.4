@@ -2,13 +2,18 @@ package jacksunderscoreusername.trinkets.trinkets;
 
 import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.StateSaverAndLoader;
+import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.screen.ScreenHandlerContext;
+import net.minecraft.screen.ScreenHandlerType;
+import net.minecraft.screen.slot.Slot;
 import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
@@ -130,3 +135,5 @@ abstract public class Trinket extends Item {
         Main.LOGGER.warn("Trinket type \"{}\" has no initializeCreationHandler", this.getId());
     }
 }
+
+

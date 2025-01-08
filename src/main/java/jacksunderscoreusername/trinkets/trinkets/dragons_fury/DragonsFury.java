@@ -108,10 +108,12 @@ public class DragonsFury extends Trinket {
         int duration = getDuration(level);
         int amplifier = getAmplifier(level);
 
-        tooltip.add(Text.literal("Right click with this item to shoot").formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("a dragon fireball that will create an").formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("effect cloud of instant damage " + (amplifier + 1)).formatted(Formatting.YELLOW));
-        tooltip.add(Text.literal("with a radius of " + radius + " for " + duration + " seconds").formatted(Formatting.YELLOW));
+        Formatting color = Trinkets.getTrinketColor(this);
+
+        tooltip.add(Text.literal("Right click with this item to shoot").formatted(color));
+        tooltip.add(Text.literal("a dragon fireball that will create an").formatted(color));
+        tooltip.add(Text.literal("effect cloud of instant damage ").formatted(color).append(Text.literal(String.valueOf(amplifier + 1)).formatted(color, Formatting.BOLD)));
+        tooltip.add(Text.literal("with a radius of ").formatted(color).append(Text.literal(String.valueOf(radius)).formatted(color, Formatting.BOLD)).append(Text.literal(" for ").formatted(color)).append(Text.literal(String.valueOf(duration)).formatted(color, Formatting.BOLD)).append(Text.literal(" seconds").formatted(color)));
 
         if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
             tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));
