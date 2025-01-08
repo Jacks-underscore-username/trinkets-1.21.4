@@ -3,8 +3,7 @@ package jacksunderscoreusername.trinkets;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
-import jacksunderscoreusername.trinkets.trinkets.Trinket;
-import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
+import jacksunderscoreusername.trinkets.trinkets.breeze_core.UseBreezeCorePayload;
 import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
 import jacksunderscoreusername.trinkets.trinkets.soul_lamp.Ghost;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
@@ -13,31 +12,13 @@ import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.client.rendering.v1.ColorProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreens;
 import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.network.packet.s2c.play.*;
-import net.minecraft.server.command.CommandManager;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.Hand;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
-import net.minecraft.util.shape.VoxelShape;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
 
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.Setup.ECHO_PORTAL;
 
@@ -102,6 +83,12 @@ public class MainClient implements ClientModInitializer {
                     MinecraftClient.getInstance().setScreen(null);
                 }
             });
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(UseBreezeCorePayload.ID, (payload, context) -> {
+            PlayerEntity player = context.player();
+            player.setVelocity(payload.vec().x, payload.vec().y, payload.vec().z);
+            player.useRiptide(20, 0, null);
         });
     }
 }

@@ -32,16 +32,16 @@ public class KillMob extends Task {
     private static final HashMap<EntityType<?>, validMobEntry> validMobs = new HashMap<>();
 
     static {
-        validMobs.put(EntityType.ZOMBIE, new validMobEntry(3, 50, "the village has been being raided by hostile mobs, could you kill %s zombieS to help?"));
-        validMobs.put(EntityType.SKELETON, new validMobEntry(3, 50, "the village has been being raided by hostile mobs, could you kill %s skeletonS to help?"));
-        validMobs.put(EntityType.CREEPER, new validMobEntry(3, 50, "the village has been being raided by hostile mobs, could you kill %s creeperS to help?"));
-        validMobs.put(EntityType.SPIDER, new validMobEntry(3, 50, "the village has been being raided by hostile mobs, could you kill %s spiderS to help?"));
-        validMobs.put(EntityType.ENDERMAN, new validMobEntry(3, 25, "the village has been being raided by hostile mobs, could you kill %s enderman to help?"));
-        validMobs.put(EntityType.WITCH, new validMobEntry(3, 5, "the village has been being raided by hostile mobs, could you kill %s witchES to help?"));
-        validMobs.put(EntityType.EVOKER, new validMobEntry(8, 3, "the village has been being raided by hostile mobs, could you kill %s evokerS to help?"));
-        validMobs.put(EntityType.VINDICATOR, new validMobEntry(8, 3, "the village has been being raided by hostile mobs, could you kill %s vindicatorS to help?"));
+        validMobs.put(EntityType.ZOMBIE, new validMobEntry(5, 50, "the village has been being raided by hostile mobs, could you kill %s zombieS to help?"));
+        validMobs.put(EntityType.SKELETON, new validMobEntry(5, 50, "the village has been being raided by hostile mobs, could you kill %s skeletonS to help?"));
+        validMobs.put(EntityType.CREEPER, new validMobEntry(5, 50, "the village has been being raided by hostile mobs, could you kill %s creeperS to help?"));
+        validMobs.put(EntityType.SPIDER, new validMobEntry(5, 50, "the village has been being raided by hostile mobs, could you kill %s spiderS to help?"));
+        validMobs.put(EntityType.ENDERMAN, new validMobEntry(5, 25, "the village has been being raided by hostile mobs, could you kill %s enderman to help?"));
+        validMobs.put(EntityType.WITCH, new validMobEntry(5, 5, "the village has been being raided by hostile mobs, could you kill %s witchES to help?"));
+        validMobs.put(EntityType.EVOKER, new validMobEntry(10, 3, "the village has been being raided by hostile mobs, could you kill %s evokerS to help?"));
+        validMobs.put(EntityType.VINDICATOR, new validMobEntry(9, 3, "the village has been being raided by hostile mobs, could you kill %s vindicatorS to help?"));
         validMobs.put(EntityType.PILLAGER, new validMobEntry(5, 5, "the village has been being raided by hostile mobs, could you kill %s pillagerS to help?"));
-        validMobs.put(EntityType.VEX, new validMobEntry(8, 10, "the village has been being raided by hostile mobs, could you kill %s vexES to help?"));
+        validMobs.put(EntityType.VEX, new validMobEntry(9, 10, "the village has been being raided by hostile mobs, could you kill %s vexES to help?"));
         validMobs.put(EntityType.PHANTOM, new validMobEntry(5, 15, "the village has been being raided by hostile mobs, could you kill %s phantomS to help?"));
     }
 

@@ -3,6 +3,7 @@
   "package": "jacksunderscoreusername.trinkets.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "BreezeCoreAntiFallMixin",
     "ItemDespawnCatching",
     "LivingEntityDeathEventMixin",
     "TrueVillagerMixin"

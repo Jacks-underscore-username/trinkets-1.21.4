@@ -48,7 +48,7 @@ abstract public class Trinket extends Item {
 
     public void markRemoved(ItemStack item) {
         TrinketDataComponent.TrinketData data = Objects.requireNonNull(item.get(TRINKET_DATA));
-        if (data.UUID().isEmpty()) {
+        if (data.UUID().length() == 1) {
             return;
         }
         UUID trinketUuid = UUID.fromString(data.UUID());
@@ -63,7 +63,7 @@ abstract public class Trinket extends Item {
 
     @Override
     public void onItemEntityDestroyed(ItemEntity entity) {
-        if (!Objects.requireNonNull(entity.getStack().get(TRINKET_DATA)).UUID().isEmpty()) {
+        if (Objects.requireNonNull(entity.getStack().get(TRINKET_DATA)).UUID().length() != 1) {
             this.markRemoved(entity.getStack());
         }
         super.onItemEntityDestroyed(entity);
@@ -92,7 +92,7 @@ abstract public class Trinket extends Item {
         if (entity instanceof PlayerEntity && !world.isClient) {
             TrinketDataComponent.TrinketData data = stack.get(TRINKET_DATA);
             assert data != null;
-            if (data.UUID().length()<=1) {
+            if (data.UUID().length() <= 1) {
                 markCreated(stack);
                 data = stack.get(TRINKET_DATA);
                 assert data != null;
@@ -114,7 +114,7 @@ abstract public class Trinket extends Item {
     public boolean shouldShowTooltip(ItemStack stack, TooltipContext context, List<Text> tooltip, TooltipType type) {
         TrinketDataComponent.TrinketData data = stack.get(TRINKET_DATA);
         assert data != null;
-        if (data.UUID().isEmpty()) {
+        if (data.UUID().length() == 1) {
             return false;
         }
         if (data.interference() == 1) {

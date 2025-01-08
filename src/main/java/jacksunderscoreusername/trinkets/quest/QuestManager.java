@@ -6,6 +6,7 @@ import jacksunderscoreusername.trinkets.dialog.DialogHelper;
 import jacksunderscoreusername.trinkets.dialog.DialogPage;
 import jacksunderscoreusername.trinkets.dialog.DialogScreenHandler;
 import jacksunderscoreusername.trinkets.minix_io.TrueVillager;
+import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 import net.minecraft.entity.passive.VillagerEntity;
@@ -20,6 +21,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.*;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class QuestManager {
 
@@ -68,18 +70,22 @@ public class QuestManager {
     }
 
     public static Optional<Pair<ItemStack, ItemStack>> getReward(StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int totalQuestProgress) {
+        totalQuestProgress = totalQuestProgress * 2;
         Random random = new Random(entry.questUuid().hashCode() + totalQuestProgress);
         int maxQuestLength = 25;
         int minQuestLength = 5;
         if (totalQuestProgress < minQuestLength)
             return Optional.empty();
-        if (totalQuestProgress >= maxQuestLength || random.nextInt(totalQuestProgress, maxQuestLength) == totalQuestProgress) {
+        if (totalQuestProgress >= maxQuestLength || random.nextInt(maxQuestLength) <= Math.ceilDiv(totalQuestProgress, 2)) {
             ItemStack firstItem = null;
             ItemStack secondItem = null;
-            for (var trinket : Arrays.stream(Trinkets.AllTrinkets).sorted((a, b) -> random.nextInt(-1, 1)).sorted(Comparator.comparingInt(t -> rarityMap.get(t.getDefaultStack().getRarity()))).toList()) {
+            ArrayList<Trinket> allTrinkets = new ArrayList<>(List.of(Trinkets.AllTrinkets));
+            ArrayList<Trinket> tempList = new ArrayList<>();
+            while (!allTrinkets.isEmpty()) tempList.add(allTrinkets.remove(random.nextInt(allTrinkets.size())));
+            allTrinkets = tempList;
+            for (var trinket : allTrinkets.stream().sorted((a, b) -> rarityMap.get(b.getDefaultStack().getRarity()) - rarityMap.get(a.getDefaultStack().getRarity())).toList()) {
                 if (Trinkets.canTrinketBeCreated(trinket.getId()) && rarityMap.get(trinket.getDefaultStack().getRarity()) <= totalQuestProgress) {
                     firstItem = trinket.getDefaultStack();
-//                    totalQuestProgress -= rarityMap.get(firstItem.getRarity());
                     break;
                 }
             }
@@ -97,6 +103,7 @@ public class QuestManager {
                 if (firstItem == null) firstItem = item;
                 else secondItem = item;
             }
+            Main.LOGGER.info("Reward chosen for quest with value {} : {} {} and {} {}", totalQuestProgress, firstItem.getCount(), firstItem.getItem().getName().getLiteralString(), secondItem.getCount(), secondItem.getItem().getName().getLiteralString());
             return Optional.of(new Pair<>(firstItem, secondItem));
         }
         return Optional.empty();
@@ -104,7 +111,7 @@ public class QuestManager {
 
     public static void initialize() {
         UseEntityCallback.EVENT.register(((player, world, hand, entity, hitResult) -> {
-            if (entity instanceof VillagerEntity villager && !player.isSneaking() && player instanceof ServerPlayerEntity serverPlayer) {
+            if (!world.isClient && entity instanceof VillagerEntity villager && !player.isSneaking() && player instanceof ServerPlayerEntity serverPlayer && hand.equals(Hand.MAIN_HAND)) {
                 if (currentPlayerTasks.containsKey(player.getUuid()) && currentPlayerTasks.get(player.getUuid()).containsKey(villager.getUuid())) {
                     DialogHelper.openScreen(serverPlayer, villager, currentPlayerTasks.get(player.getUuid()).get(villager.getUuid()).getPage());
                     return ActionResult.SUCCESS;

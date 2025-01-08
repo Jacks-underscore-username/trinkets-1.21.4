@@ -2,6 +2,7 @@ package jacksunderscoreusername.trinkets.mixin;
 
 import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.minix_io.TrueVillager;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityData;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.ai.brain.Brain;
@@ -9,9 +10,13 @@ import net.minecraft.entity.ai.brain.MemoryModuleType;
 import net.minecraft.entity.effect.StatusEffects;
 import net.minecraft.entity.passive.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.SimpleInventory;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtOps;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.text.Text;
 import net.minecraft.util.Uuids;
 import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.LocalDifficulty;
@@ -50,14 +55,12 @@ public abstract class TrueVillagerMixin implements TrueVillager {
             Optional<GlobalPos> homeMemory = brain.getOptionalMemory(MemoryModuleType.HOME);
             if (homeMemory != null && homeMemory.isPresent()) {
                 trinkets_1_21_4_v2$firstHome = homeMemory.get();
-                Main.LOGGER.info("Villager has claimed first home at {}", trinkets_1_21_4_v2$firstHome);
             }
         }
         if (trinkets_1_21_4_v2$firstJob == null) {
             Optional<GlobalPos> jobMemory = brain.getOptionalMemory(MemoryModuleType.JOB_SITE);
             if (jobMemory != null && jobMemory.isPresent()) {
                 trinkets_1_21_4_v2$firstJob = jobMemory.get();
-                Main.LOGGER.info("Villager has claimed first job at {}", trinkets_1_21_4_v2$firstJob);
             }
         }
         if (((VillagerEntity) (Object) this).isBaby() && !trinkets_1_21_4_v2$wasChildOrZombie) {
@@ -116,6 +119,9 @@ public abstract class TrueVillagerMixin implements TrueVillager {
     }
 
     @Unique
+    private HashMap<UUID, Integer> trinkets_1_21_4_v2$playerMessageTimes = new HashMap<>();
+
+    @Unique
     public boolean trinkets_1_21_4_v2$canStartQuest(PlayerEntity player) {
         Brain<VillagerEntity> brain = this.getBrain();
         Optional<GlobalPos> homeMemory = brain.getOptionalMemory(MemoryModuleType.HOME);
@@ -135,19 +141,21 @@ public abstract class TrueVillagerMixin implements TrueVillager {
         boolean result = willGiveQuestsToPlayer && hasEnoughReputation && hasNotQuested && wasNeverChildOrZombie && sameHome && sameJob;
         if (result) {
             trinkets_1_21_4_v2$alreadyQuestedPlayers.add(player.getUuid());
-        } else {
-            Main.LOGGER.info("willGiveQuestsToPlayer: {}", willGiveQuestsToPlayer);
-            Main.LOGGER.info("hasEnoughReputation: {} ({} / {})", hasEnoughReputation, playerReputation, neededReputation);
-            Main.LOGGER.info("hasNotQuested: {}", hasNotQuested);
-            Main.LOGGER.info("wasNeverChildOrZombie: {}", wasNeverChildOrZombie);
-            Main.LOGGER.info("sameHome: {}", sameHome);
-            Main.LOGGER.info("sameJob: {}", sameJob);
+        } else if (!player.isSneaking() && (!trinkets_1_21_4_v2$playerMessageTimes.containsKey(player.getUuid())) || System.currentTimeMillis() / 1000 - trinkets_1_21_4_v2$playerMessageTimes.get(player.getUuid()) > 2) {
+            trinkets_1_21_4_v2$playerMessageTimes.put(player.getUuid(), (int) (System.currentTimeMillis() / 1000));
+            Text message = null;
+            if (!sameHome || !sameJob || !wasNeverChildOrZombie)
+                message = Text.literal("This villager will not give quests");
+            else if (!willGiveQuestsToPlayer)
+                message = Text.literal("This villager will not give you quests");
+            else if (!hasNotQuested)
+                message = Text.literal("You have already taken a quest from this villager");
+            else if (!hasEnoughReputation)
+                message = Text.literal("You do not have enough reputation to start a quest (" + playerReputation + "/" + neededReputation + ")");
+            player.sendMessage(message, false);
+            Entity villager = ((Entity) (Object) this);
+            player.getWorld().playSound(villager, villager.getBlockPos(), SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.NEUTRAL, 1.0F, 1.0F);
         }
         return result;
-    }
-
-    @Unique
-    public void trinkets_1_21_4_v2$markUsedQuest(PlayerEntity player) {
-        trinkets_1_21_4_v2$alreadyQuestedPlayers.add(player.getUuid());
     }
 }

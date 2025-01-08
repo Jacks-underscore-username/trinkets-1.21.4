@@ -10,10 +10,12 @@ import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.effect.StatusEffectInstance;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
@@ -58,7 +60,7 @@ public class SoulLamp extends Trinket {
     }
 
     public static int getEffectRadius(int level) {
-        return 10 + (level - 1) * 5;
+        return 20 + (level - 1) * 10;
     }
 
     public static int getEffectTime(int level) {
@@ -67,6 +69,10 @@ public class SoulLamp extends Trinket {
 
     public static int getEffectAmp(int level) {
         return level - 1;
+    }
+
+    public static int getSpawnCount(int level) {
+        return 5 + (level - 1) * 3;
     }
 
     public void initialize() {
@@ -100,7 +106,9 @@ public class SoulLamp extends Trinket {
                 livingEntity.addStatusEffect(effect, user);
             }
         }
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 15 * 60, 15 * 60));
+        for (var i = 0; i < getSpawnCount(level); i++)
+            Ghost.GHOST.spawn((ServerWorld) world, user.getBlockPos(), SpawnReason.MOB_SUMMONED);
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 10 * 60, 10 * 60));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 1.0F, 0.5F);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
@@ -121,10 +129,12 @@ public class SoulLamp extends Trinket {
         int radius = getEffectRadius(level);
         int time = getEffectTime(level);
         int amp = getEffectAmp(level);
+        int spawns = getSpawnCount(level);
 
         tooltip.add(Text.literal("Right click with this item to apply").formatted(Formatting.LIGHT_PURPLE));
         tooltip.add(Text.literal("curse " + (amp + 1) + " to all other living entities").formatted(Formatting.LIGHT_PURPLE));
         tooltip.add(Text.literal("within a " + radius * 2 + " block wide cube").formatted(Formatting.LIGHT_PURPLE));
         tooltip.add(Text.literal("centered on you for " + Utils.prettyTime(time, true)).formatted(Formatting.LIGHT_PURPLE));
+        tooltip.add(Text.literal("and spawn " + spawns + " ghosts").formatted(Formatting.LIGHT_PURPLE));
     }
 }

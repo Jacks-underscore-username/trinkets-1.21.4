@@ -3,23 +3,26 @@ package jacksunderscoreusername.trinkets;
 import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
+import jacksunderscoreusername.trinkets.trinkets.breeze_core.UseBreezeCorePayload;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.player.PlayerBlockBreakEvents;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.block.BlockState;
-import net.minecraft.network.packet.s2c.play.BlockUpdateS2CPacket;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.MovementType;
+import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.ActionResult;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class Main implements ModInitializer {
@@ -49,6 +52,7 @@ public class Main implements ModInitializer {
         PayloadTypeRegistry.playS2C().register(SendDialogPagePayload.ID, SendDialogPagePayload.CODEC);
         PayloadTypeRegistry.playC2S().register(DialogClickedPayload.ID, DialogClickedPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CloseDialogPagePayload.ID, CloseDialogPagePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(UseBreezeCorePayload.ID, UseBreezeCorePayload.CODEC);
 
         ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
             sender.sendPacket(new ConfigPayload(config.toJsonString()));

@@ -56,21 +56,21 @@ public class GiveItem extends Task {
         validItems.put(Items.ENDER_CHEST, new validItem(3, 5, "i've heard about some new rare item, could you bring me %s ender chestS?"));
         validItems.put(Items.RABBIT_FOOT, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s rabbit feet?"));
         validItems.put(Items.NETHER_WART, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s nether wartS?"));
-        validItems.put(Items.OMINOUS_TRIAL_KEY, new validItem(15, 5, "i've heard about some new rare item, could you bring me %s ominous trial keyS?"));
-        validItems.put(Items.TRIAL_KEY, new validItem(10, 10, "i've heard about some new rare item, could you bring me %s trial keyS?"));
-        validItems.put(Items.EXPERIENCE_BOTTLE, new validItem(3, 5, "i've heard about some new rare item, could you bring me %s experience bottleS?"));
+        validItems.put(Items.OMINOUS_TRIAL_KEY, new validItem(15, 3, "i've heard about some new rare item, could you bring me %s ominous trial keyS?"));
+        validItems.put(Items.TRIAL_KEY, new validItem(10, 5, "i've heard about some new rare item, could you bring me %s trial keyS?"));
+        validItems.put(Items.EXPERIENCE_BOTTLE, new validItem(5, 3, "i've heard about some new rare item, could you bring me %s experience bottleS?"));
         validItems.put(Items.CREAKING_HEART, new validItem(10, 3, "i've heard about some new rare item, could you bring me %s creaking heartS?"));
-        validItems.put(Items.HEART_OF_THE_SEA, new validItem(5, 1, "i've heard about some new rare item, could you bring me %s heartS of the sea?"));
-        validItems.put(Items.ANCIENT_DEBRIS, new validItem(5, 16, "i've heard about some new rare item, could you bring me %s ancient debris?"));
+        validItems.put(Items.HEART_OF_THE_SEA, new validItem(10, 1, "i've heard about some new rare item, could you bring me %s heartS of the sea?"));
+        validItems.put(Items.ANCIENT_DEBRIS, new validItem(10, 16, "i've heard about some new rare item, could you bring me %s ancient debris?"));
         validItems.put(Items.AMETHYST_SHARD, new validItem(5, 32, "i've heard about some new rare item, could you bring me %s amethyst shardS?"));
         validItems.put(Items.SHULKER_SHELL, new validItem(8, 16, "i've heard about some new rare item, could you bring me %s shulker shellS?"));
-        validItems.put(Items.BLAZE_ROD, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s blaze rodS?"));
-        validItems.put(Items.GOLDEN_APPLE, new validItem(3, 8, "my food's running low, could you bring me %s golden appleS?"));
+        validItems.put(Items.BLAZE_ROD, new validItem(5, 16, "i've heard about some new rare item, could you bring me %s blaze rodS?"));
+        validItems.put(Items.GOLDEN_APPLE, new validItem(4, 8, "my food's running low, could you bring me %s golden appleS?"));
         validItems.put(Items.NETHERITE_UPGRADE_SMITHING_TEMPLATE, new validItem(5, 1, "i've need some protection, could you bring me %s netherite upgrade templateS?"));
-        validItems.put(Items.GLOW_INK_SAC, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s glow ink sacS?"));
-        validItems.put(Items.ARMADILLO_SCUTE, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s armadillo scuteS?"));
+        validItems.put(Items.GLOW_INK_SAC, new validItem(5, 16, "i've heard about some new rare item, could you bring me %s glow ink sacS?"));
+        validItems.put(Items.ARMADILLO_SCUTE, new validItem(4, 16, "i've heard about some new rare item, could you bring me %s armadillo scuteS?"));
         validItems.put(Items.TURTLE_SCUTE, new validItem(5, 5, "i've heard about some new rare item, could you bring me %s turtle scuteS?"));
-        validItems.put(Items.PHANTOM_MEMBRANE, new validItem(3, 16, "i've heard about some new rare item, could you bring me %s phantom membraneS?"));
+        validItems.put(Items.PHANTOM_MEMBRANE, new validItem(4, 16, "i've heard about some new rare item, could you bring me %s phantom membraneS?"));
     }
 
     private record storedData(int id, int count) {

@@ -2,6 +2,7 @@ package jacksunderscoreusername.trinkets.trinkets;
 
 import com.google.common.collect.ImmutableList;
 import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.trinkets.breeze_core.BreezeCore;
 import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
 import jacksunderscoreusername.trinkets.trinkets.soul_lamp.SoulLamp;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
@@ -38,8 +39,9 @@ public class Trinkets {
     public static final Trinket SUSPICIOUS_SUBSTANCE = register(SuspiciousSubstance.id, SuspiciousSubstance::new, SuspiciousSubstance.getSettings());
     public static final Trinket SOUL_LAMP = register(SoulLamp.id, SoulLamp::new, SoulLamp.getSettings());
     public static final Trinket FIRE_WAND = register(FireWand.id, FireWand::new, FireWand.getSettings());
+    public static final Trinket BREEZE_CORE = register(BreezeCore.id, BreezeCore::new, BreezeCore.getSettings());
 
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP, FIRE_WAND};
+    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP, FIRE_WAND, BREEZE_CORE};
 
     public static final Item UNCOMMON_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, UncommonTrinketDust.id)), UncommonTrinketDust::new, UncommonTrinketDust.getSettings());
     public static final Item RARE_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, RareTrinketDust.id)), RareTrinketDust::new, RareTrinketDust.getSettings());
@@ -150,17 +152,29 @@ public class Trinkets {
                                 continue;
                             }
                             int timeLeft = cooldownData.totalTime() - (now - cooldownData.startTime()) / 20;
+                            if (item.getItem() instanceof TrinketWithCharges itemClass && cooldownData.totalTime() > itemClass.getChargeTime(item))
+                                item.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(cooldownData.startTime(), cooldownData.timeLeft(), itemClass.getChargeTime(item)));
                             if (timeLeft <= 0) {
                                 item.remove(CooldownDataComponent.COOLDOWN);
-                            } else if (timeLeft < cooldownData.timeLeft()) {
+                            } else if (timeLeft != cooldownData.timeLeft()) {
                                 item.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(cooldownData.startTime(), cooldownData.totalTime(), timeLeft));
+                            }
+                        }
+                        if (cooldownData == null && item.getItem() instanceof TrinketWithCharges itemClass) {
+                            int charges = (item.get(ChargesDataComponent.CHARGES) == null ? 0 : Objects.requireNonNull(item.get(ChargesDataComponent.CHARGES)).charges()) + 1;
+                            if (itemClass.getMaxCharges(item) >= charges) {
+                                item.set(ChargesDataComponent.CHARGES, new ChargesDataComponent.Charges(charges));
+                                item.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(now, itemClass.getChargeTime(item), itemClass.getChargeTime(item)));
                             }
                         }
                     }
                 }
+
+//                player.checkGliding();
             }
         });
         CooldownDataComponent.initialize();
+        ChargesDataComponent.initialize();
         TrinketsItemGroup.initialize();
         for (var trinket : AllTrinkets) {
             trinket.initialize();

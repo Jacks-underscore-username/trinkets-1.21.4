@@ -63,7 +63,7 @@ public class ActivatedEchoShard extends Trinket {
     }
 
     public static int getMaxRange(int level) {
-        return level * 500;
+        return level * 1000;
     }
 
     public void initialize() {

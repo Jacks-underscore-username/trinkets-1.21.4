@@ -152,7 +152,7 @@ public class EternalBonemeal extends Trinket {
                 }
             }
         }
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 5 * 60, 5 * 60));
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 3 * 60, 3 * 60));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.BLOCK_GROWING_PLANT_CROP, SoundCategory.PLAYERS, 1.0F, 1.0F);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
