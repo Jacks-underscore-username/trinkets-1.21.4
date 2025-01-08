@@ -15,7 +15,7 @@ public final class TrinketsItemGroup {
             .icon(() -> new ItemStack(Trinkets.ACTIVATED_ECHO_SHARD))
             .displayName(Text.translatable("itemGroup." + Main.MOD_ID + ".trinket_group"))
             .entries((context, entries) -> {
-                for (var trinket : Trinkets.AllTrinkets) {
+                for (var trinket : Trinkets.allTrinkets) {
                     entries.add(trinket);
                 }
                 entries.add(Trinkets.UNCOMMON_TRINKET_DUST);

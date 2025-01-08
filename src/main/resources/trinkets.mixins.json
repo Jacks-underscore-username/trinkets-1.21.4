@@ -6,6 +6,7 @@
     "BreezeCoreAntiFallMixin",
     "ItemDespawnCatching",
     "LivingEntityDeathEventMixin",
+    "OriginalTotemMixin",
     "TrueVillagerMixin"
   ],
   "injectors": {

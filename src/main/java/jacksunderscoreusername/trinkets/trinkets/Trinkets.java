@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.trinkets.breeze_core.BreezeCore;
 import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
+import jacksunderscoreusername.trinkets.trinkets.original_totem.OriginalTotem;
 import jacksunderscoreusername.trinkets.trinkets.soul_lamp.SoulLamp;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.DragonsFury;
 import jacksunderscoreusername.trinkets.trinkets.eternal_bonemeal.EternalBonemeal;
@@ -32,6 +33,8 @@ import java.util.function.Function;
 public class Trinkets {
     public static final HashMap<Rarity, Formatting> rarityColors = new HashMap<>();
 
+    public static final ArrayList<Trinket> allTrinkets = new ArrayList<>();
+
     public static final Trinket ACTIVATED_ECHO_SHARD = register(ActivatedEchoShard.id, ActivatedEchoShard::new, ActivatedEchoShard.getSettings());
     public static final Trinket GRAVITY_DISRUPTOR = register(GravityDisruptor.id, GravityDisruptor::new, GravityDisruptor.getSettings());
     public static final Trinket DRAGONS_FURY = register(DragonsFury.id, DragonsFury::new, DragonsFury.getSettings());
@@ -40,8 +43,7 @@ public class Trinkets {
     public static final Trinket SOUL_LAMP = register(SoulLamp.id, SoulLamp::new, SoulLamp.getSettings());
     public static final Trinket FIRE_WAND = register(FireWand.id, FireWand::new, FireWand.getSettings());
     public static final Trinket BREEZE_CORE = register(BreezeCore.id, BreezeCore::new, BreezeCore.getSettings());
-
-    public static final Trinket[] AllTrinkets = {ACTIVATED_ECHO_SHARD, GRAVITY_DISRUPTOR, DRAGONS_FURY, ETERNAL_BONEMEAL, SUSPICIOUS_SUBSTANCE, SOUL_LAMP, FIRE_WAND, BREEZE_CORE};
+    public static final Trinket ORIGINAL_TOTEM = register(OriginalTotem.id, OriginalTotem::new, OriginalTotem.getSettings());
 
     public static final Item UNCOMMON_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, UncommonTrinketDust.id)), UncommonTrinketDust::new, UncommonTrinketDust.getSettings());
     public static final Item RARE_TRINKET_DUST = Items.register(RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, RareTrinketDust.id)), RareTrinketDust::new, RareTrinketDust.getSettings());
@@ -49,7 +51,9 @@ public class Trinkets {
 
     public static Trinket register(String id, Function<Item.Settings, Item> factory, Item.Settings settings) {
         final RegistryKey<Item> registryKey = RegistryKey.of(RegistryKeys.ITEM, Identifier.of(Main.MOD_ID, id));
-        return (Trinket) Items.register(registryKey, factory, settings);
+        Trinket trinket = (Trinket) Items.register(registryKey, factory, settings);
+        allTrinkets.add(trinket);
+        return trinket;
     }
 
     public static boolean canTrinketBeCreated(String id) {
@@ -95,11 +99,6 @@ public class Trinkets {
             return count <= Main.config.max_player_trinkets;
         }
         throw new RuntimeException("Invalid something I'm sure");
-    }
-
-    public static Trinket getRandomTrinket() {
-        List<Trinket> validTrinkets = Arrays.stream(AllTrinkets).filter((trinket) -> canTrinketBeCreated(trinket.getId())).toList();
-        return validTrinkets.get((int) Math.floor(Math.random() * validTrinkets.size()));
     }
 
     public static void initialize() {
@@ -169,14 +168,12 @@ public class Trinkets {
                         }
                     }
                 }
-
-//                player.checkGliding();
             }
         });
         CooldownDataComponent.initialize();
         ChargesDataComponent.initialize();
         TrinketsItemGroup.initialize();
-        for (var trinket : AllTrinkets) {
+        for (var trinket : allTrinkets) {
             trinket.initialize();
         }
     }

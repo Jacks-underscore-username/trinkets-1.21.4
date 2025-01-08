@@ -79,7 +79,7 @@ public class QuestManager {
         if (totalQuestProgress >= maxQuestLength || random.nextInt(maxQuestLength) <= Math.ceilDiv(totalQuestProgress, 2)) {
             ItemStack firstItem = null;
             ItemStack secondItem = null;
-            ArrayList<Trinket> allTrinkets = new ArrayList<>(List.of(Trinkets.AllTrinkets));
+            ArrayList<Trinket> allTrinkets = (ArrayList<Trinket>) Trinkets.allTrinkets.clone();
             ArrayList<Trinket> tempList = new ArrayList<>();
             while (!allTrinkets.isEmpty()) tempList.add(allTrinkets.remove(random.nextInt(allTrinkets.size())));
             allTrinkets = tempList;
