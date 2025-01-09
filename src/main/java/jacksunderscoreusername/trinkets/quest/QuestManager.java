@@ -89,7 +89,6 @@ public class QuestManager {
     }
 
     public static Optional<Pair<ItemStack, ItemStack>> getReward(StateSaverAndLoader.StoredData.currentPlayerQuestsEntry entry, int totalQuestProgress, boolean forceReward, ServerPlayerEntity player) {
-        totalQuestProgress = totalQuestProgress * 2;
         Random random = new Random(entry.questUuid().hashCode() + totalQuestProgress);
         int maxQuestLength = 25;
         int minQuestLength = 5;

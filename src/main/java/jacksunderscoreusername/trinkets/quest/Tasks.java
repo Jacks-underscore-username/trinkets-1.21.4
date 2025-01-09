@@ -74,3 +74,11 @@ public class Tasks {
         }
     }
 }
+
+/*
+play music for the villagers
+bring a master villager from another village to this village
+prove that you're powerful by killing a boss
+kill a local miniboss
+
+ */

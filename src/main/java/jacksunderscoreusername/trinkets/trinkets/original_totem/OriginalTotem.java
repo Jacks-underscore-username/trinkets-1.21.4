@@ -85,7 +85,8 @@ public class OriginalTotem extends Trinket {
         int duration = getEffectTime(level);
         StatusEffectInstance effect = new StatusEffectInstance(InvincibleEffect.INVINCIBLE, duration * 20, 0);
         user.addStatusEffect(effect, user);
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 30 * 60, 30 * 60));
+        int cooldown = Integer.max(30 * 60, (int) (getEffectTime(level) * 1.25F));
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), cooldown, cooldown));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ITEM_TOTEM_USE, SoundCategory.PLAYERS, 1, 2);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
