@@ -2,6 +2,7 @@ package jacksunderscoreusername.trinkets.quest;
 
 import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.StateSaverAndLoader;
+import jacksunderscoreusername.trinkets.quest.tasks.BetweenTasks;
 import jacksunderscoreusername.trinkets.quest.tasks.GiveItem;
 import jacksunderscoreusername.trinkets.quest.tasks.KillMob;
 import jacksunderscoreusername.trinkets.quest.tasks.LocalGolem;
@@ -40,6 +41,8 @@ public class Tasks {
     }
 
     static {
+        register(BetweenTasks.id, BetweenTasks::decode);
+
         register(LocalGolem.id, LocalGolem::decode);
         register(GiveItem.id, GiveItem::decode);
         register(KillMob.id, KillMob::decode);
