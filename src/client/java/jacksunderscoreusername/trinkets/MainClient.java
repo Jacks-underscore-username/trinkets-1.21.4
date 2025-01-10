@@ -5,8 +5,8 @@ import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
 import jacksunderscoreusername.trinkets.trinkets.breeze_core.UseBreezeCorePayload;
 import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
-import jacksunderscoreusername.trinkets.trinkets.soul_lamp.Ghost;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.GhostEntity;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -37,53 +37,41 @@ public class MainClient implements ClientModInitializer {
             } else return 0;
         }, ECHO_PORTAL);
 
-        ClientPlayNetworking.registerGlobalReceiver(SwingHandPayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                context.player().swingHand(payload.isMainHand() ? Hand.MAIN_HAND : Hand.OFF_HAND);
-            });
-        });
+        ClientPlayNetworking.registerGlobalReceiver(SwingHandPayload.ID, (payload, context) -> context.client().execute(() -> context.player().swingHand(payload.isMainHand() ? Hand.MAIN_HAND : Hand.OFF_HAND)));
 
-        ClientPlayNetworking.registerGlobalReceiver(ConfigPayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                Main.LOGGER.info("Received config packet");
-                config = Config.fromJsonString(payload.configJson());
-            });
-        });
+        ClientPlayNetworking.registerGlobalReceiver(ConfigPayload.ID, (payload, context) -> context.client().execute(() -> {
+            Main.LOGGER.info("Received config packet");
+            config = Config.fromJsonString(payload.configJson());
+        }));
 
         EntityRendererRegistry.register(VariedDragonFireball.VARIED_DRAGON_FIREBALL, VariedDragonFireballRenderer::new);
 
-        EntityRendererRegistry.register(Ghost.GHOST, GhostRenderer::new);
+        EntityRendererRegistry.register(GhostEntity.GHOST, GhostEntityRenderer::new);
         EntityRendererRegistry.register(FireWand.DELAYED_EXPLOSION, DelayedExplosionRenderer::new);
 
         HandledScreens.register(QuestManager.DIALOG_SCREEN_HANDLER, DialogScreen::new);
 
-        ClientPlayNetworking.registerGlobalReceiver(SetDialogEntityPayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
-                    Entity entity = MinecraftClient.getInstance().player.getWorld().getEntityById(payload.id());
-                    if (entity instanceof LivingEntity livingEntity) {
-                        screen.speakingEntity = livingEntity;
-                    }
+        ClientPlayNetworking.registerGlobalReceiver(SetDialogEntityPayload.ID, (payload, context) -> context.client().execute(() -> {
+            if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
+                Entity entity = MinecraftClient.getInstance().player.getWorld().getEntityById(payload.id());
+                if (entity instanceof LivingEntity livingEntity) {
+                    screen.speakingEntity = livingEntity;
                 }
-            });
-        });
+            }
+        }));
 
-        ClientPlayNetworking.registerGlobalReceiver(SendDialogPagePayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
-                    screen.items = DialogPage.decodeItems(payload.pageJson());
-                    screen.init();
-                }
-            });
-        });
+        ClientPlayNetworking.registerGlobalReceiver(SendDialogPagePayload.ID, (payload, context) -> context.client().execute(() -> {
+            if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
+                screen.items = DialogPage.decodeItems(payload.pageJson());
+                screen.init();
+            }
+        }));
 
-        ClientPlayNetworking.registerGlobalReceiver(CloseDialogPagePayload.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen) {
-                    MinecraftClient.getInstance().setScreen(null);
-                }
-            });
-        });
+        ClientPlayNetworking.registerGlobalReceiver(CloseDialogPagePayload.ID, (payload, context) -> context.client().execute(() -> {
+            if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen) {
+                MinecraftClient.getInstance().setScreen(null);
+            }
+        }));
 
         ClientPlayNetworking.registerGlobalReceiver(UseBreezeCorePayload.ID, (payload, context) -> {
             PlayerEntity player = context.player();

@@ -1,5 +1,6 @@
 package jacksunderscoreusername.trinkets;
 
+import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
@@ -53,6 +54,29 @@ public class Commands {
                             }
                             int finalOpenCount = openCount;
                             context.getSource().sendFeedback(() -> Text.literal(finalOpenCount + "/" + Trinkets.allTrinkets.size() + " trinkets can still be claimed"), false);
+                            return 1;
+                        })));
+
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+                dispatcher.register(CommandManager.literal("resetCooldown")
+                        .requires(source -> source.hasPermissionLevel(2))
+                        .executes(context -> {
+                            ServerPlayerEntity player = context.getSource().getPlayer();
+                            if (player == null) {
+                                return 0;
+                            }
+                            ItemStack stack = player.getMainHandStack();
+                            if (!(stack.getItem() instanceof Trinket)) {
+                                context.getSource().sendFeedback(() -> Text.literal("You have to be holding a trinket reset it's cooldown"), false);
+                                return 0;
+                            }
+                            if (stack.contains(CooldownDataComponent.COOLDOWN))
+                                stack.remove(CooldownDataComponent.COOLDOWN);
+                            else {
+                                context.getSource().sendFeedback(() -> Text.literal("Selected trinket has no cooldown"), false);
+                                return 0;
+                            }
+                            context.getSource().sendFeedback(() -> Text.literal("Reset trinket cooldown"), true);
                             return 1;
                         })));
     }

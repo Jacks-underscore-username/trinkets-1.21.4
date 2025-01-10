@@ -50,7 +50,7 @@ public class OriginalTotem extends Trinket {
         settings = settings
                 .maxCount(1)
                 .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
-                .rarity(Rarity.UNCOMMON);
+                .rarity(Rarity.RARE);
         return settings;
     }
 

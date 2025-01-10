@@ -12,6 +12,6 @@
   "item.trinkets.uncommon_trinket_dust": "Uncommon Trinket Dust",
   "item.trinkets.rare_trinket_dust": "Rare Trinket Dust",
   "item.trinkets.epic_trinket_dust": "Epic Trinket Dust",
-  "effect.trinkets.cursed": "Cursed",
-  "effect.trinkets.invincible": "Invincible"
+  "effect.trinkets.invincible": "Invincible",
+  "entity:trinkets:ghost": "Ghost"
 }

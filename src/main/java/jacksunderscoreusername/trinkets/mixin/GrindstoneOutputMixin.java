@@ -2,11 +2,9 @@ package jacksunderscoreusername.trinkets.mixin;
 
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
-import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.GrindstoneScreenHandler;
-import net.minecraft.util.Rarity;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;

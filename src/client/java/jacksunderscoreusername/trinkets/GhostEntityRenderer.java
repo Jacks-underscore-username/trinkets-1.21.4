@@ -1,8 +1,7 @@
 package jacksunderscoreusername.trinkets;
 
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
-import jacksunderscoreusername.trinkets.trinkets.soul_lamp.CursedEffect;
-import jacksunderscoreusername.trinkets.trinkets.soul_lamp.Ghost;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.GhostEntity;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.render.VertexConsumerProvider;
@@ -17,16 +16,16 @@ import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 
-public class GhostRenderer extends MobEntityRenderer<Ghost, VexEntityRenderState, VexEntityModel> {
+public class GhostEntityRenderer extends MobEntityRenderer<GhostEntity, VexEntityRenderState, VexEntityModel> {
     private static final Identifier TEXTURE = Identifier.ofVanilla("textures/entity/illager/vex.png");
     private static final Identifier CHARGING_TEXTURE = Identifier.ofVanilla("textures/entity/illager/vex_charging.png");
 
-    public GhostRenderer(EntityRendererFactory.Context context) {
-        super(context, new VexEntityModel(context.getPart(EntityModelLayers.VEX)), 0.3F);
+    public GhostEntityRenderer(EntityRendererFactory.Context context) {
+        super(context, new VexEntityModel(context.getPart(EntityModelLayers.VEX)), 0);
         this.addFeature(new HeldItemFeatureRenderer<>(this));
     }
 
-    protected int getBlockLight(Ghost entity, BlockPos blockPos) {
+    protected int getBlockLight(GhostEntity entity, BlockPos blockPos) {
         return 15;
     }
 
@@ -38,7 +37,7 @@ public class GhostRenderer extends MobEntityRenderer<Ghost, VexEntityRenderState
         return new VexEntityRenderState();
     }
 
-    public void updateRenderState(Ghost entity, VexEntityRenderState vexEntityRenderState, float f) {
+    public void updateRenderState(GhostEntity entity, VexEntityRenderState vexEntityRenderState, float f) {
         super.updateRenderState(entity, vexEntityRenderState, f);
         ArmedEntityRenderState.updateRenderState(entity, vexEntityRenderState, this.itemModelResolver);
         vexEntityRenderState.charging = entity.isCharging();
@@ -47,7 +46,7 @@ public class GhostRenderer extends MobEntityRenderer<Ghost, VexEntityRenderState
     @Override
     public void render(VexEntityRenderState livingEntityRenderState, MatrixStack matrixStack, VertexConsumerProvider vertexConsumerProvider, int i) {
         ClientPlayerEntity player = MinecraftClient.getInstance().player;
-        if (player != null && (player.getStatusEffect(CursedEffect.CURSED) != null || player.getMainHandStack().isOf(Trinkets.SOUL_LAMP) || player.getOffHandStack().isOf(Trinkets.SOUL_LAMP))) {
+        if (player != null && (player.getMainHandStack().isOf(Trinkets.SOUL_LAMP) || player.getOffHandStack().isOf(Trinkets.SOUL_LAMP))) {
             super.render(livingEntityRenderState, matrixStack, vertexConsumerProvider, i);
         }
     }

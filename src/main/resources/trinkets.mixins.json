@@ -9,6 +9,7 @@
     "ItemDespawnCatching",
     "LivingEntityDeathEventMixin",
     "OriginalTotemMixin",
+    "TameableEntityMixin",
     "TrueVillagerMixin"
   ],
   "injectors": {
