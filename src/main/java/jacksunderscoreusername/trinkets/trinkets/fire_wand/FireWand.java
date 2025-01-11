@@ -127,7 +127,7 @@ public class FireWand extends Trinket {
         }
         if (world instanceof ServerWorld serverWorld) {
             serverWorld.addEntities(explosions.stream());
-            itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 60, 60));
+            itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 3 * 60, 3 * 60));
             markUsed(itemStack, user);
         }
         return ActionResult.SUCCESS;

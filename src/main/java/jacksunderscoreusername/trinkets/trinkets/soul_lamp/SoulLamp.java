@@ -1,12 +1,14 @@
 package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
 import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import jacksunderscoreusername.trinkets.Utils;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
@@ -15,7 +17,6 @@ import net.minecraft.item.tooltip.TooltipType;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
@@ -23,6 +24,7 @@ import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -66,11 +68,21 @@ public class SoulLamp extends Trinket {
     }
 
     public static int getSoulMultiplier(int level) {
-        return (int) (2 + (level - 1) * 1.5);
+        return 2 + (level - 1);
     }
 
     public void initialize() {
         GhostEntity.initialize();
+        ServerTickEvents.START_WORLD_TICK.register(world -> {
+            for (var pair : Main.state.data.soulLampGroups.entrySet()) {
+                StateSaverAndLoader.StoredData.soulLampEntry entry = pair.getValue();
+                if (entry.lifeTimeLeft > 0)
+                    entry.lifeTimeLeft--;
+                if (entry.members.isEmpty())
+                    Main.state.data.soulLampGroups.remove(pair.getKey());
+
+            }
+        });
     }
 
     @Override
@@ -88,18 +100,21 @@ public class SoulLamp extends Trinket {
         if (itemStack.get(CooldownDataComponent.COOLDOWN) != null) {
             return ActionResult.PASS;
         }
-        int level = Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level();
+        TrinketDataComponent.TrinketData data = itemStack.get(TRINKET_DATA);
+        assert data != null;
+        int level = data.level();
         int spawnCount = getSpawnCount(level);
-        int lifeTime = getLifeTime(level) * 20;
+        int lifeTime = getLifeTime(level);
         int soulMultiplier = getSoulMultiplier(level);
+        StateSaverAndLoader.StoredData.soulLampEntry group = new StateSaverAndLoader.StoredData.soulLampEntry(user.getUuid(), lifeTime * 20L, soulMultiplier, new HashSet<>(), new HashSet<>());
+        Main.state.data.soulLampGroups.put(UUID.fromString(data.UUID()), group);
         for (var i = 0; i < spawnCount; i++) {
             GhostEntity ghost = GhostEntity.GHOST.spawn((ServerWorld) world, user.getBlockPos(), SpawnReason.MOB_SUMMONED);
             assert ghost != null;
-            ghost.setOwner(user);
-            ghost.setMaxLifeTicks(lifeTime);
-            ghost.setSoulMultiplier(soulMultiplier);
+            group.members.add(ghost.getUuid());
+            ghost.group = group;
         }
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 20 * 60, 20 * 60));
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), Integer.max(20 * 60, (int) (lifeTime * 1.25)), Integer.max(20 * 60, (int) (lifeTime * 1.25))));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 1.0F, 0.5F);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));

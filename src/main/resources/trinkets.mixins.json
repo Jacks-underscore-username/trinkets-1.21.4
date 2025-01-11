@@ -3,13 +3,13 @@
   "package": "jacksunderscoreusername.trinkets.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "AnvilFallingMixin",
     "BreezeCoreAntiFallMixin",
     "GrindstoneInputMixin",
     "GrindstoneOutputMixin",
     "ItemDespawnCatching",
     "LivingEntityDeathEventMixin",
     "OriginalTotemMixin",
-    "TameableEntityMixin",
     "TrueVillagerMixin"
   ],
   "injectors": {

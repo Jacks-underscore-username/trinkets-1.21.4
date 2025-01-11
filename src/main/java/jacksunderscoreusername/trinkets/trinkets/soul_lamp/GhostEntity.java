@@ -1,7 +1,11 @@
 package jacksunderscoreusername.trinkets.trinkets.soul_lamp;
 
 import jacksunderscoreusername.trinkets.Main;
+import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import jacksunderscoreusername.trinkets.events.LivingEntityDeathEvent;
+import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.minecraft.entity.*;
 import net.minecraft.entity.ai.control.MoveControl;
@@ -12,17 +16,17 @@ import net.minecraft.entity.data.DataTracker;
 import net.minecraft.entity.data.TrackedData;
 import net.minecraft.entity.data.TrackedDataHandlerRegistry;
 import net.minecraft.entity.mob.*;
-import net.minecraft.entity.passive.PassiveEntity;
-import net.minecraft.entity.passive.TameableEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.particle.ParticleTypes;
 import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundEvent;
 import net.minecraft.sound.SoundEvents;
@@ -37,19 +41,15 @@ import net.minecraft.world.ServerWorldAccess;
 import net.minecraft.world.World;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.EnumSet;
+import java.util.*;
 
-public class GhostEntity extends TameableEntity {
+public class GhostEntity extends PathAwareEntity {
     public static final int field_28645 = MathHelper.ceil((float) (Math.PI * 5.0 / 4.0));
     protected static final TrackedData<Byte> GHOST_FLAGS = DataTracker.registerData(GhostEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final int CHARGING_FLAG = 1;
-    PlayerEntity owner;
     @Nullable
     private BlockPos bounds;
-    private boolean alive;
-    private int lifeTicks;
-    private int maxLifeTicks;
-    private int soulMultiplier;
+    public StateSaverAndLoader.StoredData.soulLampEntry group;
 
     public GhostEntity(EntityType<? extends GhostEntity> entityType, World world) {
         super(entityType, world);
@@ -92,7 +92,31 @@ public class GhostEntity extends TameableEntity {
         this.noClip = false;
         this.setNoGravity(true);
         this.setAir(this.getMaxAir());
-        if (!(this.getWorld() instanceof ServerWorld serverWorld)) {
+        if (this.getWorld() instanceof ServerWorld serverWorld) {
+            if (this.group == null)
+                for (var group : Main.state.data.soulLampGroups.values())
+                    if (group.members.contains(this.getUuid()))
+                        this.group = group;
+            if (this.group != null && this.group.lifeTimeLeft == 0) {
+                this.damage(serverWorld, this.getDamageSources().starve(), this.getMaxHealth());
+            }
+            if (this.group != null && !this.group.targets.isEmpty() && (this.getTarget() == null || !this.getTarget().isAlive())) {
+                ArrayList<UUID> targets = new ArrayList<>(group.targets.stream().toList());
+                Collections.shuffle(targets);
+                for (var targetUuid : targets)
+                    if (serverWorld.getEntity(targetUuid) != null && serverWorld.getEntity(targetUuid) instanceof LivingEntity target)
+                        this.setTarget(target);
+                    else
+                        this.group.targets.remove(targetUuid);
+            }
+            if (this.group != null)
+                for (var player : serverWorld.getPlayers()) {
+                    if (!ghostsToRender.containsKey(player.getUuid()))
+                        ghostsToRender.put(player.getUuid(), new HashSet<>());
+                    if (this.group.playerUuid.equals(player.getUuid()) || this.group.targets.contains(player.getUuid()))
+                        ghostsToRender.get(player.getUuid()).add(this.getId());
+                }
+        } else {
             if (this.isCharging()) {
                 this.getWorld()
                         .addParticle(
@@ -112,10 +136,6 @@ public class GhostEntity extends TameableEntity {
                                 0, 0, 0
                         );
             }
-        } else if (++this.lifeTicks > 0) {
-            int healthLimit = 1 + (int) Math.ceil(this.getMaxHealth() - this.getMaxHealth() / this.maxLifeTicks * this.lifeTicks);
-            if (this.getHealth() > healthLimit)
-                this.damage(serverWorld, this.getDamageSources().starve(), 1);
         }
     }
 
@@ -123,14 +143,11 @@ public class GhostEntity extends TameableEntity {
     protected void initGoals() {
         super.initGoals();
         this.goalSelector.add(0, new SwimGoal(this));
-        this.goalSelector.add(3, new GhostEntity.FollowOwnerGoal());
-        this.goalSelector.add(6, new ChargeTargetGoal());
-        this.goalSelector.add(8, new LookAtTargetGoal());
-        this.goalSelector.add(9, new LookAtEntityGoal(this, PlayerEntity.class, 3.0F, 1.0F));
-        this.goalSelector.add(10, new LookAtEntityGoal(this, MobEntity.class, 8.0F));
-        this.targetSelector.add(1, new RevengeGoal(this).setGroupRevenge());
-        this.targetSelector.add(5, new TrackOwnerAttackerGoal(this));
-        this.targetSelector.add(10, new AttackWithOwnerGoal(this));
+        this.goalSelector.add(1, new LookAtEntityGoal(this, MobEntity.class, 8.0F));
+        this.goalSelector.add(2, new LookAtEntityGoal(this, PlayerEntity.class, 3.0F, 1.0F));
+        this.goalSelector.add(5, new LookAtTargetGoal());
+        this.goalSelector.add(8, new GhostEntity.FollowOwnerGoal());
+        this.goalSelector.add(30, new ChargeTargetGoal());
     }
 
     @Override
@@ -145,36 +162,6 @@ public class GhostEntity extends TameableEntity {
         if (nbt.contains("BoundX")) {
             this.bounds = new BlockPos(nbt.getInt("BoundX"), nbt.getInt("BoundY"), nbt.getInt("BoundZ"));
         }
-
-        if (nbt.contains("LifeTicks")) {
-            this.setLifeTicks(nbt.getInt("LifeTicks"));
-        }
-
-        if (nbt.contains("MaxLifeTicks")) {
-            this.setMaxLifeTicks(nbt.getInt("MaxLifeTicks"));
-        }
-
-        if (nbt.contains("SoulMultiplier")) {
-            this.setSoulMultiplier(nbt.getInt("SoulMultiplier"));
-        }
-
-        if (nbt.contains("Owner")) {
-            this.setOwnerUuid(nbt.getUuid("Owner"));
-        }
-    }
-
-    @Override
-    public boolean isBreedingItem(ItemStack stack) {
-        return false;
-    }
-
-    private void copyData(Entity original) {
-        if (original instanceof GhostEntity ghostEntity) {
-            this.setOwnerUuid(ghostEntity.getOwnerUuid());
-            this.lifeTicks = ghostEntity.lifeTicks;
-            this.maxLifeTicks = ghostEntity.maxLifeTicks;
-            this.soulMultiplier = ghostEntity.soulMultiplier;
-        }
     }
 
     @Override
@@ -185,26 +172,14 @@ public class GhostEntity extends TameableEntity {
             nbt.putInt("BoundY", this.bounds.getY());
             nbt.putInt("BoundZ", this.bounds.getZ());
         }
-
-        if (this.alive) {
-            nbt.putInt("LifeTicks", this.lifeTicks);
-            nbt.putInt("MaxLifeTicks", this.maxLifeTicks);
-            nbt.putInt("SoulMultiplier", this.soulMultiplier);
-        }
-
-        if (this.getOwnerUuid() != null) {
-            nbt.putUuid("Owner", this.getOwnerUuid());
-        }
     }
 
     public PlayerEntity getOwner() {
-        if (this.owner != null)
-            return this.owner;
         if (this.getServer() != null &&
-                this.getOwnerUuid() != null &&
-                this.getServer().getPlayerManager().getPlayer(this.getOwnerUuid()) != null) {
-            this.owner = this.getServer().getPlayerManager().getPlayer(this.getOwnerUuid());
-            return this.owner;
+                this.group != null &&
+                this.group.playerUuid != null &&
+                this.getServer().getPlayerManager().getPlayer(this.group.playerUuid) != null) {
+            return this.getServer().getPlayerManager().getPlayer(this.group.playerUuid);
         }
         return null;
     }
@@ -239,26 +214,6 @@ public class GhostEntity extends TameableEntity {
     }
 
     @Override
-    public void setOwner(PlayerEntity player) {
-        this.setTamed(true, true);
-        this.setOwnerUuid(player.getUuid());
-        this.owner = player;
-    }
-
-    public void setLifeTicks(int lifeTicks) {
-        this.alive = true;
-        this.lifeTicks = lifeTicks;
-    }
-
-    public void setMaxLifeTicks(int maxLifeTicks) {
-        this.maxLifeTicks = maxLifeTicks;
-    }
-
-    public void setSoulMultiplier(int soulMultiplier) {
-        this.soulMultiplier = soulMultiplier;
-    }
-
-    @Override
     protected SoundEvent getAmbientSound() {
         return SoundEvents.PARTICLE_SOUL_ESCAPE.value();
     }
@@ -283,11 +238,6 @@ public class GhostEntity extends TameableEntity {
     }
 
     @Override
-    public @Nullable PassiveEntity createChild(ServerWorld world, PassiveEntity entity) {
-        return null;
-    }
-
-    @Override
     protected void initEquipment(Random random, LocalDifficulty localDifficulty) {
         this.equipStack(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_SWORD));
         this.setEquipmentDropChance(EquipmentSlot.MAINHAND, 0.0F);
@@ -295,6 +245,13 @@ public class GhostEntity extends TameableEntity {
 
     @Override
     protected void tickCramming() {
+    }
+
+    @Override
+    protected void updatePostDeath() {
+        if (this.group != null)
+            this.group.members.remove(this.getUuid());
+        super.updatePostDeath();
     }
 
     class ChargeTargetGoal extends Goal {
@@ -308,7 +265,6 @@ public class GhostEntity extends TameableEntity {
             return livingEntity != null &&
                     livingEntity.isAlive() &&
                     !GhostEntity.this.getMoveControl().isMoving() &&
-                    GhostEntity.this.random.nextInt(toGoalTicks(7)) == 0 &&
                     GhostEntity.this.squaredDistanceTo(livingEntity) > 4.0;
         }
 
@@ -386,7 +342,7 @@ public class GhostEntity extends TameableEntity {
                 BlockPos blockPos2 = blockPos.add(GhostEntity.this.random.nextInt(15) - 7, GhostEntity.this.random.nextInt(11) - 5, GhostEntity.this.random.nextInt(15) - 7);
                 if (GhostEntity.this.getWorld().isAir(blockPos2)) {
                     GhostEntity.this.moveControl.moveTo((double) blockPos2.getX() + 0.5, (double) blockPos2.getY() + 0.5, (double) blockPos2.getZ() + 0.5, 0.25);
-                    if (GhostEntity.this.getTarget() == null) {
+                    if (GhostEntity.this.getTarget() == null || !GhostEntity.this.getTarget().isAlive()) {
                         GhostEntity.this.getLookControl().lookAt((double) blockPos2.getX() + 0.5, (double) blockPos2.getY() + 0.5, (double) blockPos2.getZ() + 0.5, 180.0F, 20.0F);
                     }
                     break;
@@ -399,7 +355,7 @@ public class GhostEntity extends TameableEntity {
 
         @Override
         public boolean canStart() {
-            return getTarget() == null;
+            return (GhostEntity.this.group == null || GhostEntity.this.group.targets.isEmpty()) && getOwner() != null && GhostEntity.this.squaredDistanceTo(getOwner()) > 50;
         }
 
         @Override
@@ -409,7 +365,7 @@ public class GhostEntity extends TameableEntity {
 
         @Override
         public boolean shouldContinue() {
-            return getTarget() == null;
+            return canStart();
         }
 
         @Override
@@ -439,7 +395,7 @@ public class GhostEntity extends TameableEntity {
                     GhostEntity.this.setVelocity(GhostEntity.this.getVelocity().multiply(0.5));
                 } else {
                     GhostEntity.this.setVelocity(GhostEntity.this.getVelocity().add(vec3d.multiply(this.speed * 0.05 / d)));
-                    if (GhostEntity.this.getTarget() == null) {
+                    if (GhostEntity.this.getTarget() == null || !GhostEntity.this.getTarget().isAlive()) {
                         Vec3d vec3d2 = GhostEntity.this.getVelocity();
                         GhostEntity.this.setYaw(-((float) MathHelper.atan2(vec3d2.x, vec3d2.z)) * (180.0F / (float) Math.PI));
                     } else {
@@ -453,15 +409,54 @@ public class GhostEntity extends TameableEntity {
         }
     }
 
+    private static final HashMap<UUID, HashSet<Integer>> ghostsToRender = new HashMap<>();
+
     public static void initialize() {
         FabricDefaultAttributeRegistry.register(GHOST, HostileEntity.createHostileAttributes().add(EntityAttributes.MAX_HEALTH, 20.0).add(EntityAttributes.ATTACK_DAMAGE, 4.0).add(EntityAttributes.FOLLOW_RANGE, 100));
         LivingEntityDeathEvent.EVENT.register((entity) -> {
-            if (entity.getAttacker() != null && entity.getAttacker() instanceof GhostEntity ghost && entity.getWorld() instanceof ServerWorld world) {
-                for (int i = 0; i < ghost.soulMultiplier; i++) {
-                    GhostEntity.GHOST.spawn(world, entity.getBlockPos(), SpawnReason.MOB_SUMMONED).copyData(ghost);
+            if (entity.getAttacker() != null && entity.getAttacker() instanceof GhostEntity ghost && ghost.group != null && entity.getWorld() instanceof ServerWorld world) {
+                for (int i = 0; i < ghost.group.soulMultiplier; i++) {
+                    GhostEntity newGhost = GhostEntity.GHOST.spawn(world, entity.getBlockPos(), SpawnReason.MOB_SUMMONED);
+                    assert newGhost != null;
+                    ghost.group.members.add(newGhost.uuid);
+                    newGhost.group = ghost.group;
                 }
             }
             return ActionResult.PASS;
+        });
+        ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
+            StateSaverAndLoader.StoredData.soulLampEntry group = null;
+            LivingEntity targetEntity = null;
+            if (!(source.getAttacker() instanceof LivingEntity) || !source.getAttacker().isAlive()) return true;
+            if (entity instanceof GhostEntity ghost && ghost.group != null) {
+                group = ghost.group;
+                targetEntity = (LivingEntity) source.getAttacker();
+            } else if (source.getAttacker() instanceof GhostEntity ghost && ghost.group != null) {
+                group = ghost.group;
+                targetEntity = entity;
+            } else if (entity instanceof ServerPlayerEntity player && Main.state.data.soulLampGroups.values().stream().anyMatch(entry -> entry.playerUuid.equals(player.getUuid()))) {
+                group = Main.state.data.soulLampGroups.values().stream().filter(entry -> entry.playerUuid.equals(player.getUuid())).toList().getFirst();
+                targetEntity = (LivingEntity) source.getAttacker();
+            } else if (source.getAttacker() instanceof ServerPlayerEntity player && Main.state.data.soulLampGroups.values().stream().anyMatch(entry -> entry.playerUuid.equals(player.getUuid()))) {
+                group = Main.state.data.soulLampGroups.values().stream().filter(entry -> entry.playerUuid.equals(player.getUuid())).toList().getFirst();
+                targetEntity = entity;
+            }
+            if (group == null || targetEntity == null) return true;
+            if (targetEntity instanceof GhostEntity ghost && ghost.group != null && ghost.group.equals(group))
+                return true;
+            if (targetEntity instanceof ServerPlayerEntity player && group.playerUuid.equals(player.getUuid()))
+                return true;
+            group.targets.add(targetEntity.getUuid());
+            return true;
+        });
+        ServerTickEvents.END_WORLD_TICK.register(world -> {
+            for (var entry : ghostsToRender.entrySet()) {
+                UUID playerUuid = entry.getKey();
+                if (world.getEntity(playerUuid) instanceof ServerPlayerEntity player) {
+                    ServerPlayNetworking.send(player, new RenderGhostsPayload(new NbtIntArray(entry.getValue().stream().toList())));
+                }
+            }
+            ghostsToRender.clear();
         });
     }
 }

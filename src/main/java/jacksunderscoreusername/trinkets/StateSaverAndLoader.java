@@ -9,10 +9,7 @@ import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class StateSaverAndLoader extends PersistentState {
 
@@ -52,6 +49,27 @@ public class StateSaverAndLoader extends PersistentState {
         }
 
         public HashMap<UUID, ArrayList<currentPlayerQuestsEntry>> currentPlayerQuests = new HashMap<>();
+
+
+        public static class soulLampEntry {
+            public soulLampEntry(
+                    UUID playerUuid, long lifeTimeLeft, int soulMultiplier, HashSet<UUID> targets,
+                    HashSet<UUID> members) {
+                this.playerUuid = playerUuid;
+                this.lifeTimeLeft = lifeTimeLeft;
+                this.soulMultiplier = soulMultiplier;
+                this.targets = targets;
+                this.members = members;
+            }
+
+            public UUID playerUuid;
+            public long lifeTimeLeft;
+            public int soulMultiplier;
+            public HashSet<UUID> targets;
+            public HashSet<UUID> members;
+        }
+
+        public HashMap<UUID, soulLampEntry> soulLampGroups = new HashMap<>();
     }
 
     public StoredData data = new StoredData();
@@ -129,6 +147,26 @@ public class StateSaverAndLoader extends PersistentState {
             }
         }
 
+        if (tag.contains("soulLampGroups")) {
+            NbtCompound compound = tag.getCompound("soulLampGroups");
+            for (var key : compound.getKeys()) {
+                NbtCompound subCompound = compound.getCompound(key);
+                HashSet<UUID> targets = new HashSet<>();
+                for (var subKey : subCompound.getCompound("targets").getKeys())
+                    targets.add(UUID.fromString(subKey));
+                HashSet<UUID> members = new HashSet<>();
+                for (var subKey : subCompound.getCompound("members").getKeys())
+                    members.add(UUID.fromString(subKey));
+                data.soulLampGroups.put(UUID.fromString(key), new StoredData.soulLampEntry(
+                        subCompound.getUuid("playerUuid"),
+                        subCompound.getLong("lifeTimeLeft"),
+                        subCompound.getInt("soulMultiplier"),
+                        targets,
+                        members
+                ));
+            }
+        }
+
         return state;
 
     }
@@ -193,6 +231,26 @@ public class StateSaverAndLoader extends PersistentState {
                 compound.put(entry.getKey().toString(), subCompound);
             }
             nbt.put("currentPlayerQuests", compound);
+        }
+
+        if (data.soulLampGroups != null) {
+            NbtCompound compound = new NbtCompound();
+            for (var entry : data.soulLampGroups.entrySet()) {
+                NbtCompound subCompound = new NbtCompound();
+                subCompound.putUuid("playerUuid", entry.getValue().playerUuid);
+                subCompound.putLong("lifeTimeLeft", entry.getValue().lifeTimeLeft);
+                subCompound.putInt("soulMultiplier", entry.getValue().soulMultiplier);
+                NbtCompound targetsCompound = new NbtCompound();
+                for (var target : entry.getValue().targets)
+                    targetsCompound.putByte(target.toString(), (byte) 1);
+                subCompound.put("targets", targetsCompound);
+                NbtCompound membersCompound = new NbtCompound();
+                for (var target : entry.getValue().members)
+                    membersCompound.putByte(target.toString(), (byte) 1);
+                subCompound.put("members", membersCompound);
+                compound.put(entry.getKey().toString(), subCompound);
+            }
+            nbt.put("soulLampGroups", compound);
         }
 
         return nbt;

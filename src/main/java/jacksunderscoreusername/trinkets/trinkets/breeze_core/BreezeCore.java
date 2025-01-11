@@ -63,7 +63,7 @@ public class BreezeCore extends TrinketWithCharges {
     }
 
     public static int getChargeTime(int level) {
-        return Integer.max(3, 300 - (level - 1) * 90);
+        return Integer.max(3, 3 * 60 - (level - 1) * 60);
     }
 
     public int getMaxCharges(ItemStack stack) {

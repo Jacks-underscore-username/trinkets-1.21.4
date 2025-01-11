@@ -7,6 +7,7 @@ import jacksunderscoreusername.trinkets.trinkets.breeze_core.UseBreezeCorePayloa
 import jacksunderscoreusername.trinkets.trinkets.fire_wand.FireWand;
 import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
 import jacksunderscoreusername.trinkets.trinkets.soul_lamp.GhostEntity;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.RenderGhostsPayload;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
@@ -18,13 +19,19 @@ import net.minecraft.client.render.RenderLayer;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.nbt.NbtIntArray;
 import net.minecraft.util.Hand;
+
+import java.util.HashSet;
 
 import static jacksunderscoreusername.trinkets.trinkets.activated_echo_shard.Setup.ECHO_PORTAL;
 
 public class MainClient implements ClientModInitializer {
 
     public static Config config = null;
+
+
+    public static final HashSet<Integer> ghostsToRender = new HashSet<>();
 
     @Override
     public void onInitializeClient() {
@@ -53,6 +60,7 @@ public class MainClient implements ClientModInitializer {
 
         ClientPlayNetworking.registerGlobalReceiver(SetDialogEntityPayload.ID, (payload, context) -> context.client().execute(() -> {
             if (MinecraftClient.getInstance().currentScreen instanceof DialogScreen screen) {
+                assert MinecraftClient.getInstance().player != null;
                 Entity entity = MinecraftClient.getInstance().player.getWorld().getEntityById(payload.id());
                 if (entity instanceof LivingEntity livingEntity) {
                     screen.speakingEntity = livingEntity;
@@ -77,6 +85,12 @@ public class MainClient implements ClientModInitializer {
             PlayerEntity player = context.player();
             player.setVelocity(payload.vec().x, payload.vec().y, payload.vec().z);
             player.useRiptide(20, 0, null);
+        });
+
+        ClientPlayNetworking.registerGlobalReceiver(RenderGhostsPayload.ID, (payload, context) -> {
+            ghostsToRender.clear();
+            for (var x : ((NbtIntArray) payload.tag()).getIntArray())
+                ghostsToRender.add(x);
         });
     }
 }

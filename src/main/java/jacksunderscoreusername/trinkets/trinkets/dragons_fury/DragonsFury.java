@@ -90,7 +90,7 @@ public class DragonsFury extends Trinket {
         fireball.setOwner(user);
         fireball.addVelocity(user.raycast(1, 0, true).getPos().subtract(user.getEyePos()));
 
-        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 60, 60));
+        itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 5 * 60, 5 * 60));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ENDER_DRAGON_SHOOT, SoundCategory.PLAYERS, 1, 1);
         ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));

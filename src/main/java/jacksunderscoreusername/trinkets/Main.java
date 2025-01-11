@@ -4,26 +4,17 @@ import jacksunderscoreusername.trinkets.payloads.*;
 import jacksunderscoreusername.trinkets.quest.QuestManager;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import jacksunderscoreusername.trinkets.trinkets.breeze_core.UseBreezeCorePayload;
+import jacksunderscoreusername.trinkets.trinkets.soul_lamp.RenderGhostsPayload;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
-import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.MovementType;
-import net.minecraft.item.Items;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.ActionResult;
-import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
 
 public class Main implements ModInitializer {
     public static final String MOD_ID = "trinkets";
@@ -53,10 +44,9 @@ public class Main implements ModInitializer {
         PayloadTypeRegistry.playC2S().register(DialogClickedPayload.ID, DialogClickedPayload.CODEC);
         PayloadTypeRegistry.playS2C().register(CloseDialogPagePayload.ID, CloseDialogPagePayload.CODEC);
         PayloadTypeRegistry.playS2C().register(UseBreezeCorePayload.ID, UseBreezeCorePayload.CODEC);
+        PayloadTypeRegistry.playS2C().register(RenderGhostsPayload.ID, RenderGhostsPayload.CODEC);
 
-        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> {
-            sender.sendPacket(new ConfigPayload(config.toJsonString()));
-        });
+        ServerPlayConnectionEvents.JOIN.register((handler, sender, server) -> sender.sendPacket(new ConfigPayload(config.toJsonString())));
 
         Commands.initialize();
         QuestManager.initialize();
