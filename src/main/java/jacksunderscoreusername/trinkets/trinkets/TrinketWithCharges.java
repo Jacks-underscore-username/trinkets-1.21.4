@@ -2,12 +2,8 @@ package jacksunderscoreusername.trinkets.trinkets;
 
 import net.minecraft.item.ItemStack;
 
-abstract public class TrinketWithCharges extends Trinket {
-    public TrinketWithCharges(Settings settings) {
-        super(settings);
-    }
+public interface TrinketWithCharges {
+    int getMaxCharges(ItemStack stack);
 
-    abstract public int getMaxCharges(ItemStack stack);
-
-    abstract public int getChargeTime(ItemStack stack);
+    int getChargeTime(ItemStack stack);
 }

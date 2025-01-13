@@ -120,6 +120,7 @@ public class Trinkets {
         CooldownDataComponent.initialize();
         ChargesDataComponent.initialize();
         TrinketCompassDataComponent.initialize();
+        AbstractModeDataComponent.initialize();
         TrinketsItemGroup.initialize();
         for (var trinket : allTrinkets) {
             trinket.initialize();

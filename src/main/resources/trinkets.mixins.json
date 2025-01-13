@@ -11,7 +11,8 @@
     "LivingEntityDeathEventMixin",
     "OriginalTotemMixin",
     "TrinketTrackingCompassMixin",
-    "TrueVillagerMixin"
+    "TrueVillagerMixin",
+    "WindChargeEntityMixin"
   ],
   "injectors": {
     "defaultRequire": 1

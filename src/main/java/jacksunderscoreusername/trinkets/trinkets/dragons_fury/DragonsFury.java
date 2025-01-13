@@ -82,7 +82,7 @@ public class DragonsFury extends Trinket {
         }
 
         int level = Objects.requireNonNull(itemStack.get(TRINKET_DATA)).level();
-        VariedDragonFireball fireball = VariedDragonFireball.VARIED_DRAGON_FIREBALL.spawn((ServerWorld) world, new BlockPos(user.getBlockPos()), SpawnReason.MOB_SUMMONED);
+        VariedDragonFireball fireball = VariedDragonFireball.VARIED_DRAGON_FIREBALL.spawn((ServerWorld) world, BlockPos.ofFloored(user.getEyePos()), SpawnReason.MOB_SUMMONED);
         assert fireball != null;
         fireball.radius = getRadius(level);
         fireball.duration = getDuration(level) * 20;
