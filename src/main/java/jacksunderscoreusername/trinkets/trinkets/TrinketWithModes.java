@@ -12,7 +12,7 @@ public interface TrinketWithModes {
         onModeChange(stack);
     }
 
-    default void onModeChange(ItemStack stack){};
+    default void onModeChange(ItemStack stack){}
 
     default int getMode(ItemStack stack) {
         return Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode();

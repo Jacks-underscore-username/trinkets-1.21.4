@@ -48,8 +48,7 @@ public class GhostEntity extends PathAwareEntity {
     public static final int field_28645 = MathHelper.ceil((float) (Math.PI * 5.0 / 4.0));
     protected static final TrackedData<Byte> GHOST_FLAGS = DataTracker.registerData(GhostEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final int CHARGING_FLAG = 1;
-    public static final int ACTIVE_SEARCH_RADIUS = 50;
-    public static final int PASSIVE_SEARCH_RADIUS = 25;
+    public static final int ENTITY_SEARCH_RADIUS = 100;
     @Nullable
     private BlockPos bounds;
     public StateSaverAndLoader.StoredData.soulLampEntry group;
@@ -104,13 +103,26 @@ public class GhostEntity extends PathAwareEntity {
                 this.damage(serverWorld, this.getDamageSources().starve(), this.getMaxHealth());
             }
             if (this.group != null && !this.group.targets.isEmpty() && (this.getTarget() == null || !this.getTarget().isAlive())) {
-                ArrayList<UUID> targets = new ArrayList<>(group.targets.stream().toList());
-                Collections.shuffle(targets);
-                for (var targetUuid : targets)
-                    if (serverWorld.getEntity(targetUuid) != null && serverWorld.getEntity(targetUuid) instanceof LivingEntity target)
+                List<UUID> sortedPriorityTargets = group.priorityTargets.stream().sorted(Comparator.comparingDouble(x -> serverWorld.getEntity(x) == null ? Integer.MAX_VALUE : Objects.requireNonNull(serverWorld.getEntity(x)).distanceTo(getOwner()))).toList();
+                for (var targetUuid : sortedPriorityTargets)
+                    if (serverWorld.getEntity(targetUuid) != null && serverWorld.getEntity(targetUuid) instanceof LivingEntity target) {
                         this.setTarget(target);
-                    else
+                        break;
+                    } else {
+                        this.group.priorityTargets.remove(targetUuid);
                         this.group.targets.remove(targetUuid);
+                    }
+                if (this.getTarget() == null || !this.getTarget().isAlive()) {
+                    List<UUID> sortedTargets = group.targets.stream().sorted(Comparator.comparingDouble(x -> serverWorld.getEntity(x) == null ? Integer.MAX_VALUE : Objects.requireNonNull(serverWorld.getEntity(x)).distanceTo(this))).toList();
+                    ArrayList<UUID> validTargets = new ArrayList<>(sortedTargets.subList(0, Integer.min(3, sortedTargets.size())));
+                    Collections.shuffle(validTargets);
+                    for (var targetUuid : validTargets)
+                        if (serverWorld.getEntity(targetUuid) != null && serverWorld.getEntity(targetUuid) instanceof LivingEntity target) {
+                            this.setTarget(target);
+                            break;
+                        } else
+                            this.group.targets.remove(targetUuid);
+                }
             }
             if (this.group != null)
                 for (var player : serverWorld.getPlayers()) {
@@ -268,7 +280,7 @@ public class GhostEntity extends PathAwareEntity {
             return livingEntity != null &&
                     livingEntity.isAlive() &&
                     !GhostEntity.this.getMoveControl().isMoving() &&
-                    GhostEntity.this.squaredDistanceTo(livingEntity) > 4.0;
+                    GhostEntity.this.squaredDistanceTo(livingEntity) > 2.0;
         }
 
         @Override
@@ -276,7 +288,8 @@ public class GhostEntity extends PathAwareEntity {
             return GhostEntity.this.getMoveControl().isMoving()
                     && GhostEntity.this.isCharging()
                     && GhostEntity.this.getTarget() != null
-                    && GhostEntity.this.getTarget().isAlive();
+                    && GhostEntity.this.getTarget().isAlive() &&
+                    (GhostEntity.this.group.priorityTargets.isEmpty() || GhostEntity.this.group.priorityTargets.contains(GhostEntity.this.getTarget().getUuid()));
         }
 
         @Override
@@ -310,7 +323,7 @@ public class GhostEntity extends PathAwareEntity {
                     GhostEntity.this.setCharging(false);
                 } else {
                     double d = GhostEntity.this.squaredDistanceTo(livingEntity);
-                    if (d < 9.0) {
+                    if (d < 10) {
                         Vec3d vec3d = livingEntity.getEyePos();
                         GhostEntity.this.moveControl.moveTo(vec3d.x, vec3d.y, vec3d.z, 1.0);
                     }
@@ -358,7 +371,7 @@ public class GhostEntity extends PathAwareEntity {
 
         @Override
         public boolean canStart() {
-            return (GhostEntity.this.group == null || GhostEntity.this.group.targets.isEmpty()) && getOwner() != null && GhostEntity.this.squaredDistanceTo(getOwner()) > 50;
+            return GhostEntity.this.group != null && GhostEntity.this.group.targets.isEmpty() && getOwner() != null && GhostEntity.this.squaredDistanceTo(getOwner()) > 50;
         }
 
         @Override
@@ -449,6 +462,7 @@ public class GhostEntity extends PathAwareEntity {
                 return true;
             if (targetEntity instanceof ServerPlayerEntity player && group.playerUuid.equals(player.getUuid()))
                 return true;
+            group.priorityTargets.add(targetEntity.getUuid());
             group.targets.add(targetEntity.getUuid());
             return true;
         });
@@ -466,7 +480,7 @@ public class GhostEntity extends PathAwareEntity {
                 ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(group.playerUuid);
                 if (player == null) return;
                 if (group.mode == 1) {
-                Box box = new Box(player.getPos().subtract(ACTIVE_SEARCH_RADIUS), player.getPos().add(ACTIVE_SEARCH_RADIUS));
+                    Box box = new Box(player.getPos().subtract(ENTITY_SEARCH_RADIUS), player.getPos().add(ENTITY_SEARCH_RADIUS));
                     HashSet<EntityType<?>> types = new HashSet<>();
                     for (var targetUuid : group.targets) {
                         LivingEntity target = (LivingEntity) world.getEntity(targetUuid);
@@ -477,7 +491,7 @@ public class GhostEntity extends PathAwareEntity {
                         for (var newTarget : world.getEntitiesByType(type, box, entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
                             group.targets.add(newTarget.getUuid());
                 } else if (group.mode == 3) {
-                    Box box = new Box(player.getPos().subtract(PASSIVE_SEARCH_RADIUS), player.getPos().add(PASSIVE_SEARCH_RADIUS));
+                    Box box = new Box(player.getPos().subtract(ENTITY_SEARCH_RADIUS), player.getPos().add(ENTITY_SEARCH_RADIUS));
                     for (var newTarget : world.getEntitiesByClass(LivingEntity.class, box, entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
                         group.targets.add(newTarget.getUuid());
                 }

@@ -65,7 +65,7 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
     }
 
     public static int getSpawnCount(int level) {
-        return level;
+        return 3 + (level - 1) * 2;
     }
 
     public static int getLifeTime(int level) {
@@ -101,6 +101,7 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
         }
         if (user.isSneaking()) {
             nextMode(itemStack);
+            world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
             return ActionResult.SUCCESS;
         }
         if (!Trinkets.canPlayerUseTrinkets(user)) {
@@ -115,7 +116,7 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
         int spawnCount = getSpawnCount(level);
         int lifeTime = getLifeTime(level);
         int soulMultiplier = getSoulMultiplier(level);
-        StateSaverAndLoader.StoredData.soulLampEntry group = new StateSaverAndLoader.StoredData.soulLampEntry(user.getUuid(), lifeTime * 20L, soulMultiplier, new HashSet<>(), new HashSet<>(), getMode(itemStack));
+        StateSaverAndLoader.StoredData.soulLampEntry group = new StateSaverAndLoader.StoredData.soulLampEntry(user.getUuid(), lifeTime * 20L, soulMultiplier, new HashSet<>(), new HashSet<>(), new HashSet<>(), getMode(itemStack));
         Main.state.data.soulLampGroups.put(UUID.fromString(data.UUID()), group);
         for (var i = 0; i < spawnCount; i++) {
             GhostEntity ghost = GhostEntity.GHOST.spawn((ServerWorld) world, user.getBlockPos(), SpawnReason.MOB_SUMMONED);
@@ -124,7 +125,7 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
             ghost.group = group;
         }
         if (getMode(itemStack) == 2)
-            for (var newTarget : world.getEntitiesByClass(LivingEntity.class, new Box(user.getPos().subtract(GhostEntity.ACTIVE_SEARCH_RADIUS), user.getPos().add(GhostEntity.ACTIVE_SEARCH_RADIUS)), entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
+            for (var newTarget : world.getEntitiesByClass(LivingEntity.class, new Box(user.getPos().subtract(GhostEntity.ENTITY_SEARCH_RADIUS), user.getPos().add(GhostEntity.ENTITY_SEARCH_RADIUS)), entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
                 group.targets.add(newTarget.getUuid());
         itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), Integer.max(20 * 60, (int) (lifeTime * 1.25)), Integer.max(20 * 60, (int) (lifeTime * 1.25))));
         markUsed(itemStack, user);

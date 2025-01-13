@@ -5,13 +5,8 @@ import jacksunderscoreusername.trinkets.Utils;
 import jacksunderscoreusername.trinkets.minix_io.BreezeCoreAntiFall;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.*;
-import jacksunderscoreusername.trinkets.trinkets.dragons_fury.VariedDragonFireball;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityType;
-import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.entity.projectile.BreezeWindChargeEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.WindChargeEntity;
 import net.minecraft.item.ItemStack;
@@ -24,11 +19,8 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.MathHelper;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
-import org.joml.Vector3d;
 import org.joml.Vector3f;
 
 import java.util.List;
@@ -108,6 +100,7 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
         }
         if (user.isSneaking()) {
             nextMode(itemStack);
+            world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
             return ActionResult.SUCCESS;
         }
         if (!Trinkets.canPlayerUseTrinkets(user)) {
