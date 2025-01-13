@@ -67,12 +67,13 @@ public class StateSaverAndLoader extends PersistentState {
         public static class soulLampEntry {
             public soulLampEntry(
                     UUID playerUuid, long lifeTimeLeft, int soulMultiplier, HashSet<UUID> targets,
-                    HashSet<UUID> members) {
+                    HashSet<UUID> members, int mode) {
                 this.playerUuid = playerUuid;
                 this.lifeTimeLeft = lifeTimeLeft;
                 this.soulMultiplier = soulMultiplier;
                 this.targets = targets;
                 this.members = members;
+                this.mode = mode;
             }
 
             public UUID playerUuid;
@@ -80,6 +81,7 @@ public class StateSaverAndLoader extends PersistentState {
             public int soulMultiplier;
             public HashSet<UUID> targets;
             public HashSet<UUID> members;
+            public int mode;
         }
 
         public HashMap<UUID, soulLampEntry> soulLampGroups = new HashMap<>();
@@ -174,7 +176,8 @@ public class StateSaverAndLoader extends PersistentState {
                         subCompound.getLong("lifeTimeLeft"),
                         subCompound.getInt("soulMultiplier"),
                         targets,
-                        members
+                        members,
+                        subCompound.getInt("mode")
                 ));
             }
         }
@@ -278,6 +281,7 @@ public class StateSaverAndLoader extends PersistentState {
                 for (var target : entry.getValue().members)
                     membersCompound.putByte(target.toString(), (byte) 1);
                 subCompound.put("members", membersCompound);
+                subCompound.putInt("mode", entry.getValue().mode);
                 compound.put(entry.getKey().toString(), subCompound);
             }
             nbt.put("soulLampGroups", compound);

@@ -33,6 +33,7 @@ import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.math.random.Random;
@@ -47,6 +48,8 @@ public class GhostEntity extends PathAwareEntity {
     public static final int field_28645 = MathHelper.ceil((float) (Math.PI * 5.0 / 4.0));
     protected static final TrackedData<Byte> GHOST_FLAGS = DataTracker.registerData(GhostEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final int CHARGING_FLAG = 1;
+    public static final int ACTIVE_SEARCH_RADIUS = 50;
+    public static final int PASSIVE_SEARCH_RADIUS = 25;
     @Nullable
     private BlockPos bounds;
     public StateSaverAndLoader.StoredData.soulLampEntry group;
@@ -457,6 +460,29 @@ public class GhostEntity extends PathAwareEntity {
                 }
             }
             ghostsToRender.clear();
+        });
+        ServerTickEvents.START_WORLD_TICK.register(world -> {
+            for (var group : Main.state.data.soulLampGroups.values()) {
+                ServerPlayerEntity player = (ServerPlayerEntity) world.getPlayerByUuid(group.playerUuid);
+                if (player == null) return;
+                if (group.mode == 1) {
+                Box box = new Box(player.getPos().subtract(ACTIVE_SEARCH_RADIUS), player.getPos().add(ACTIVE_SEARCH_RADIUS));
+                    HashSet<EntityType<?>> types = new HashSet<>();
+                    for (var targetUuid : group.targets) {
+                        LivingEntity target = (LivingEntity) world.getEntity(targetUuid);
+                        if (target == null) continue;
+                        types.add(target.getType());
+                    }
+                    for (var type : types)
+                        for (var newTarget : world.getEntitiesByType(type, box, entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
+                            group.targets.add(newTarget.getUuid());
+                } else if (group.mode == 3) {
+                    Box box = new Box(player.getPos().subtract(PASSIVE_SEARCH_RADIUS), player.getPos().add(PASSIVE_SEARCH_RADIUS));
+                    for (var newTarget : world.getEntitiesByClass(LivingEntity.class, box, entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
+                        group.targets.add(newTarget.getUuid());
+                }
+
+            }
         });
     }
 }

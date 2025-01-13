@@ -4,12 +4,10 @@ import jacksunderscoreusername.trinkets.Main;
 import jacksunderscoreusername.trinkets.StateSaverAndLoader;
 import jacksunderscoreusername.trinkets.Utils;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
-import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
-import jacksunderscoreusername.trinkets.trinkets.Trinket;
-import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
-import jacksunderscoreusername.trinkets.trinkets.Trinkets;
+import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
@@ -22,6 +20,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
+import net.minecraft.util.math.Box;
 import net.minecraft.world.World;
 
 import java.util.HashSet;
@@ -31,7 +30,7 @@ import java.util.UUID;
 
 import static jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent.TRINKET_DATA;
 
-public class SoulLamp extends Trinket {
+public class SoulLamp extends Trinket implements TrinketWithModes {
     public static String id = "soul_lamp";
     public static String name = "Soul Lamp";
 
@@ -50,8 +49,9 @@ public class SoulLamp extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0,0))
-                .rarity(Rarity.EPIC);
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0, 0))
+                .rarity(Rarity.EPIC)
+                .component(AbstractModeDataComponent.ABSTRACT_MODE, new AbstractModeDataComponent.AbstractMode(0));
         return settings;
     }
 
@@ -59,8 +59,13 @@ public class SoulLamp extends Trinket {
         super(settings);
     }
 
+    @Override
+    public int getMaxModes() {
+        return 4;
+    }
+
     public static int getSpawnCount(int level) {
-        return 5 + (level - 1) * 3;
+        return level;
     }
 
     public static int getLifeTime(int level) {
@@ -90,11 +95,15 @@ public class SoulLamp extends Trinket {
         if (world.isClient) {
             return ActionResult.PASS;
         }
-        if (!Trinkets.canPlayerUseTrinkets(user)) {
-            return ActionResult.PASS;
-        }
         ItemStack itemStack = hand.equals(Hand.MAIN_HAND) ? user.getMainHandStack() : user.getOffHandStack();
         if (!itemStack.isOf(Trinkets.SOUL_LAMP)) {
+            return ActionResult.PASS;
+        }
+        if (user.isSneaking()) {
+            nextMode(itemStack);
+            return ActionResult.SUCCESS;
+        }
+        if (!Trinkets.canPlayerUseTrinkets(user)) {
             return ActionResult.PASS;
         }
         if (itemStack.get(CooldownDataComponent.COOLDOWN) != null) {
@@ -106,7 +115,7 @@ public class SoulLamp extends Trinket {
         int spawnCount = getSpawnCount(level);
         int lifeTime = getLifeTime(level);
         int soulMultiplier = getSoulMultiplier(level);
-        StateSaverAndLoader.StoredData.soulLampEntry group = new StateSaverAndLoader.StoredData.soulLampEntry(user.getUuid(), lifeTime * 20L, soulMultiplier, new HashSet<>(), new HashSet<>());
+        StateSaverAndLoader.StoredData.soulLampEntry group = new StateSaverAndLoader.StoredData.soulLampEntry(user.getUuid(), lifeTime * 20L, soulMultiplier, new HashSet<>(), new HashSet<>(), getMode(itemStack));
         Main.state.data.soulLampGroups.put(UUID.fromString(data.UUID()), group);
         for (var i = 0; i < spawnCount; i++) {
             GhostEntity ghost = GhostEntity.GHOST.spawn((ServerWorld) world, user.getBlockPos(), SpawnReason.MOB_SUMMONED);
@@ -114,6 +123,9 @@ public class SoulLamp extends Trinket {
             group.members.add(ghost.getUuid());
             ghost.group = group;
         }
+        if (getMode(itemStack) == 2)
+            for (var newTarget : world.getEntitiesByClass(LivingEntity.class, new Box(user.getPos().subtract(GhostEntity.ACTIVE_SEARCH_RADIUS), user.getPos().add(GhostEntity.ACTIVE_SEARCH_RADIUS)), entity -> !group.playerUuid.equals(entity.getUuid()) && !group.members.contains(entity.getUuid()) && !group.targets.contains(entity.getUuid())))
+                group.targets.add(newTarget.getUuid());
         itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), Integer.max(20 * 60, (int) (lifeTime * 1.25)), Integer.max(20 * 60, (int) (lifeTime * 1.25))));
         markUsed(itemStack, user);
         world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_ELDER_GUARDIAN_CURSE, SoundCategory.PLAYERS, 1.0F, 0.5F);
@@ -127,16 +139,27 @@ public class SoulLamp extends Trinket {
             return;
         }
 
-        if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
-            tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));
-        }
-
         int level = Objects.requireNonNull(stack.get(TRINKET_DATA)).level();
         int spawnCount = getSpawnCount(level);
         int lifeTime = getLifeTime(level);
         int soulMultiplier = getSoulMultiplier(level);
 
         Formatting color = Trinkets.getTrinketColor(this);
+
+        int mode = Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode();
+        String modeName = switch (mode) {
+            case 0 -> "Manual Targeting";
+            case 1 -> "Entity Type Targeting";
+            case 2 -> "Current Area Targeting";
+            case 3 -> "Continuous Area Targeting";
+            default -> "";
+        };
+
+        tooltip.add(Text.literal("Mode: ").append(Text.literal(modeName).formatted(color, Formatting.ITALIC)));
+
+        if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
+            tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));
+        }
 
         tooltip.add(Text.literal("Right click with this item to spawn").formatted(color));
         tooltip.add(Text.literal("").append(Text.literal(String.valueOf(spawnCount)).formatted(color, Formatting.BOLD)).append(Text.literal(" tamed level ").formatted(color)).append(Text.literal(String.valueOf(soulMultiplier)).formatted(color, Formatting.BOLD)).append(Text.literal(" ghosts with a max").formatted(color)));
