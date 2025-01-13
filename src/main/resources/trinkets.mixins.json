@@ -5,11 +5,12 @@
   "mixins": [
     "AnvilFallingMixin",
     "BreezeCoreAntiFallMixin",
+    "EntityMixin",
     "GrindstoneInputMixin",
     "GrindstoneOutputMixin",
-    "ItemDespawnCatching",
     "LivingEntityDeathEventMixin",
     "OriginalTotemMixin",
+    "TrinketTrackingCompassMixin",
     "TrueVillagerMixin"
   ],
   "injectors": {

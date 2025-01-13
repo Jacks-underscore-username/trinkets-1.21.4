@@ -19,7 +19,6 @@ import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.Objects;
 
 public class UncommonTrinketDust extends Item {
     public static String id = "uncommon_trinket_dust";
@@ -39,10 +38,10 @@ public class UncommonTrinketDust extends Item {
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
         ItemStack item = user.getOffHandStack();
-        if ( hand.equals(Hand.MAIN_HAND) && item.getItem() instanceof Trinket && item.getRarity().equals(Rarity.UNCOMMON)) {
+        if (hand.equals(Hand.MAIN_HAND) && item.getItem() instanceof Trinket && item.getRarity().equals(Rarity.UNCOMMON)) {
             if (!world.isClient) {
                 TrinketDataComponent.TrinketData oldData = user.getOffHandStack().get(TrinketDataComponent.TRINKET_DATA);
-                user.getOffHandStack().set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
+                user.getOffHandStack().set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference(), oldData.trackerCount()));
             }
             user.getMainHandStack().decrement(1);
             world.playSound(user, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1F, 1F);

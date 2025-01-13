@@ -40,7 +40,7 @@ public class DragonsFury extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0,0))
                 .rarity(Rarity.UNCOMMON);
         return settings;
     }

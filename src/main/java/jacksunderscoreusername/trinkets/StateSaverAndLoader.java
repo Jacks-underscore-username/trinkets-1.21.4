@@ -2,8 +2,10 @@ package jacksunderscoreusername.trinkets;
 
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.registry.RegistryWrapper;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.math.GlobalPos;
 import net.minecraft.world.PersistentState;
 import net.minecraft.world.PersistentStateManager;
 import net.minecraft.world.World;
@@ -39,9 +41,21 @@ public class StateSaverAndLoader extends PersistentState {
             public UUID itemUuid;
         }
 
+        public static class lastTrinketLocationEntry implements Serializable {
+            public lastTrinketLocationEntry(long time, GlobalPos pos) {
+                this.time = time;
+                this.pos = pos;
+            }
+
+            public long time;
+            public GlobalPos pos;
+        }
+
         public HashMap<UUID, StateSaverAndLoader.StoredData.currentTrinketPlayerMapEntry> currentTrinketPlayerMap = new HashMap<>();
         public HashMap<UUID, UUID> claimedTrinketPlayerMap = new HashMap<>();
         public HashMap<UUID, ArrayList<StateSaverAndLoader.StoredData.playerTrinketUseHistoryEntry>> playerTrinketUseHistory = new HashMap<>();
+        public HashMap<UUID, lastTrinketLocationEntry> lastTrinketLocations = new HashMap<>();
+        public HashMap<UUID, Integer> trinketCompasses = new HashMap<>();
 
         public record currentPlayerQuestsEntry(UUID playerUuid, UUID villagerUuid, String taskType,
                                                String encodedTask, int totalQuestProgress,
@@ -49,7 +63,6 @@ public class StateSaverAndLoader extends PersistentState {
         }
 
         public HashMap<UUID, ArrayList<currentPlayerQuestsEntry>> currentPlayerQuests = new HashMap<>();
-
 
         public static class soulLampEntry {
             public soulLampEntry(
@@ -76,21 +89,6 @@ public class StateSaverAndLoader extends PersistentState {
 
     public static StateSaverAndLoader createFromNbt(NbtCompound tag, RegistryWrapper.WrapperLookup registryLookup) {
         StateSaverAndLoader state = new StateSaverAndLoader();
-
-        // Keep support for old saved
-        if (tag.contains("data"))
-            try {
-                byte[] mapString = tag.getByteArray("data");
-                InputStream inStream = new ByteArrayInputStream(mapString);
-                ObjectInputStream in = new ObjectInputStream(inStream);
-
-                state.data = (StoredData) in.readObject();
-
-                in.close();
-                inStream.close();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
 
         StoredData data = state.data;
 
@@ -145,6 +143,20 @@ public class StateSaverAndLoader extends PersistentState {
                     ));
                 }
             }
+        }
+
+        if (tag.contains("lastTrinketLocations")) {
+            NbtCompound compound = tag.getCompound("lastTrinketLocations");
+            for (var key : compound.getKeys()) {
+                NbtCompound subCompound = compound.getCompound(key);
+                data.lastTrinketLocations.put(UUID.fromString(key), new StoredData.lastTrinketLocationEntry(subCompound.getLong("time"), GlobalPos.CODEC.parse(NbtOps.INSTANCE, subCompound.get("pos")).getOrThrow()));
+            }
+        }
+
+        if (tag.contains("trinketCompasses")) {
+            NbtCompound compound = tag.getCompound("trinketCompasses");
+            for (var key : compound.getKeys())
+                data.trinketCompasses.put(UUID.fromString(key), compound.getInt(key));
         }
 
         if (tag.contains("soulLampGroups")) {
@@ -233,6 +245,24 @@ public class StateSaverAndLoader extends PersistentState {
             nbt.put("currentPlayerQuests", compound);
         }
 
+        if (data.lastTrinketLocations != null) {
+            NbtCompound compound = new NbtCompound();
+            for (var entry : data.lastTrinketLocations.entrySet()) {
+                NbtCompound subCompound = new NbtCompound();
+                subCompound.putLong("time", entry.getValue().time);
+                subCompound.put("pos", GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, entry.getValue().pos).getOrThrow());
+                compound.put(entry.getKey().toString(), subCompound);
+            }
+            nbt.put("lastTrinketLocations", compound);
+        }
+
+        if (data.trinketCompasses != null) {
+            NbtCompound compound = new NbtCompound();
+            for (var entry : data.trinketCompasses.entrySet())
+                compound.putInt(entry.getKey().toString(), entry.getValue());
+            nbt.put("trinketCompasses", compound);
+        }
+
         if (data.soulLampGroups != null) {
             NbtCompound compound = new NbtCompound();
             for (var entry : data.soulLampGroups.entrySet()) {
@@ -266,9 +296,7 @@ public class StateSaverAndLoader extends PersistentState {
 
         StateSaverAndLoader state = persistentStateManager.getOrCreate(type, Main.MOD_ID);
 
-        ServerLifecycleEvents.BEFORE_SAVE.register((server2, flush, force) -> {
-            state.markDirty();
-        });
+        ServerLifecycleEvents.BEFORE_SAVE.register((server2, flush, force) -> state.markDirty());
 
         return state;
     }

@@ -47,7 +47,7 @@ public class FireWand extends Trinket {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0, 0))
                 .rarity(Rarity.RARE);
         return settings;
     }
@@ -84,7 +84,11 @@ public class FireWand extends Trinket {
     }
 
     public static int getMaxExplosionPower(int level) {
-        return 5 + (level - 1) * 3;
+        return 3 + (level - 1) * 2;
+    }
+
+    public static int getCooldown(int level) {
+        return Integer.max(60, 300 - (level - 1) * 60);
     }
 
     public void initialize() {
@@ -114,7 +118,7 @@ public class FireWand extends Trinket {
         Vec3d startPos = user.getPos().add(direction.multiply(startDistance));
         Vec3d endPos = startPos.add(direction.multiply(range + startDistance));
         List<Entity> explosions = new ArrayList<>();
-        if (!world.isClient) {
+        if (world instanceof ServerWorld serverWorld) {
             for (int i = 0; i < range; i++) {
                 Vec3d pos = startPos.lerp(endPos, i / ((double) range));
                 BlockState blockState = world.getBlockState(new BlockPos((int) Math.round(pos.x), (int) Math.round(pos.y), (int) Math.round(pos.z)));
@@ -124,10 +128,9 @@ public class FireWand extends Trinket {
                 } else
                     explosions.add(new DelayedExplosion(world, pos.x, pos.y, pos.z, user, i / 5, 1));
             }
-        }
-        if (world instanceof ServerWorld serverWorld) {
+
             serverWorld.addEntities(explosions.stream());
-            itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), 3 * 60, 3 * 60));
+            itemStack.set(CooldownDataComponent.COOLDOWN, new CooldownDataComponent.CooldownData(Objects.requireNonNull(world.getServer()).getTicks(), getCooldown(level), getCooldown(level)));
             markUsed(itemStack, user);
         }
         return ActionResult.SUCCESS;
@@ -149,8 +152,8 @@ public class FireWand extends Trinket {
 
         Formatting color = Trinkets.getTrinketColor(this);
 
-        tooltip.add(Text.literal("Right click with this item to apply").formatted(color));
+        tooltip.add(Text.literal("Right click with this item to").formatted(color));
         tooltip.add(Text.literal("shoot an explosive ").formatted(color).append(Text.literal(String.valueOf(range)).formatted(color, Formatting.BOLD).append(Text.literal(" blocks").formatted(color))));
-        tooltip.add(Text.literal("with a power of ").formatted(color).append(Text.literal(String.valueOf(maxPower)).formatted(color, Formatting.BOLD)));
+        tooltip.add(Text.literal("away with a power of ").formatted(color).append(Text.literal(String.valueOf(maxPower)).formatted(color, Formatting.BOLD)));
     }
 }

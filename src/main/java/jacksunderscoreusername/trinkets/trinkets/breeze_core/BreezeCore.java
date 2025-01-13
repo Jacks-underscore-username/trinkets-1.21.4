@@ -44,7 +44,7 @@ public class BreezeCore extends TrinketWithCharges {
         }
         settings = settings
                 .maxCount(1)
-                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0))
+                .component(TRINKET_DATA, new TrinketDataComponent.TrinketData(1, " ", 0,0))
                 .rarity(Rarity.RARE)
                 .component(ChargesDataComponent.CHARGES, new ChargesDataComponent.Charges(getMaxCharges(1)));
         return settings;

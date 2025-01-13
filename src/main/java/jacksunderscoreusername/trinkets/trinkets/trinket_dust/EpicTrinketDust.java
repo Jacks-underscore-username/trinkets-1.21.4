@@ -1,10 +1,7 @@
 package jacksunderscoreusername.trinkets.trinkets.trinket_dust;
 
-import jacksunderscoreusername.trinkets.Main;
-import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
-import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -19,7 +16,6 @@ import net.minecraft.util.Rarity;
 import net.minecraft.world.World;
 
 import java.util.List;
-import java.util.Objects;
 
 public class EpicTrinketDust extends Item {
     public static String id = "epic_trinket_dust";
@@ -42,7 +38,7 @@ public class EpicTrinketDust extends Item {
         if (hand.equals(Hand.MAIN_HAND) && item.getItem() instanceof Trinket) {
             if (!world.isClient) {
                 TrinketDataComponent.TrinketData oldData = user.getOffHandStack().get(TrinketDataComponent.TRINKET_DATA);
-                user.getOffHandStack().set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference()));
+                user.getOffHandStack().set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(oldData.level() + 1, oldData.UUID(), oldData.interference(),oldData.trackerCount()));
             }
             user.getMainHandStack().decrement(1);
             world.playSound(user, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1F, 1F);

@@ -15,6 +15,7 @@ import jacksunderscoreusername.trinkets.trinkets.trinket_dust.EpicTrinketDust;
 import jacksunderscoreusername.trinkets.trinkets.trinket_dust.RareTrinketDust;
 import jacksunderscoreusername.trinkets.trinkets.trinket_dust.UncommonTrinketDust;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
+import net.fabricmc.fabric.api.event.player.UseItemCallback;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.Item;
@@ -23,9 +24,9 @@ import net.minecraft.item.Items;
 import net.minecraft.registry.RegistryKey;
 import net.minecraft.registry.RegistryKeys;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.util.Formatting;
-import net.minecraft.util.Identifier;
-import net.minecraft.util.Rarity;
+import net.minecraft.sound.SoundCategory;
+import net.minecraft.sound.SoundEvents;
+import net.minecraft.util.*;
 
 import java.util.*;
 import java.util.function.Function;
@@ -116,6 +117,14 @@ public class Trinkets {
         rarityColors.put(Rarity.RARE, Formatting.AQUA);
         rarityColors.put(Rarity.EPIC, Formatting.LIGHT_PURPLE);
 
+        CooldownDataComponent.initialize();
+        ChargesDataComponent.initialize();
+        TrinketCompassDataComponent.initialize();
+        TrinketsItemGroup.initialize();
+        for (var trinket : allTrinkets) {
+            trinket.initialize();
+        }
+
         ServerTickEvents.START_WORLD_TICK.register((world) -> {
             if (world.isClient) {
                 return;
@@ -147,10 +156,10 @@ public class Trinkets {
                             continue;
                         }
                         if (!state && data.interference() == 0) {
-                            item.set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(data.level(), data.UUID(), 1));
+                            item.set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(data.level(), data.UUID(), 1, data.trackerCount()));
                         }
                         if (state && data.interference() == 1) {
-                            item.set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(data.level(), data.UUID(), 0));
+                            item.set(TrinketDataComponent.TRINKET_DATA, new TrinketDataComponent.TrinketData(data.level(), data.UUID(), 0, data.trackerCount()));
                         }
 
                         CooldownDataComponent.CooldownData cooldownData = item.get(CooldownDataComponent.COOLDOWN);
@@ -179,11 +188,25 @@ public class Trinkets {
                 }
             }
         });
-        CooldownDataComponent.initialize();
-        ChargesDataComponent.initialize();
-        TrinketsItemGroup.initialize();
-        for (var trinket : allTrinkets) {
-            trinket.initialize();
-        }
+
+        UseItemCallback.EVENT.register((player, world, hand) -> {
+            if (!hand.equals(Hand.MAIN_HAND)) return ActionResult.PASS;
+            ItemStack compass = player.getMainHandStack();
+            if (compass.isEmpty() || !compass.isOf(Items.COMPASS)) return ActionResult.PASS;
+            ItemStack trinket = player.getOffHandStack();
+            if (trinket.isEmpty() || !(trinket.getItem() instanceof Trinket)) return ActionResult.PASS;
+            TrinketDataComponent.TrinketData trinketData = trinket.get(TrinketDataComponent.TRINKET_DATA);
+            if (trinketData == null || trinketData.UUID().length() <= 1) return ActionResult.PASS;
+            if (!world.isClient) {
+                TrinketCompassDataComponent.TrinketCompassData oldData = compass.get(TrinketCompassDataComponent.TRINKET_COMPASS);
+                HashMap<UUID, Integer> compassCounts = Main.state.data.trinketCompasses;
+                if (oldData != null)
+                    compassCounts.put(UUID.fromString(oldData.trinketUuid()), compassCounts.get(UUID.fromString(oldData.trinketUuid())) - compass.getCount());
+                compassCounts.put(UUID.fromString(trinketData.UUID()), compassCounts.getOrDefault(UUID.fromString(trinketData.UUID()), 0) + compass.getCount());
+            }
+            compass.set(TrinketCompassDataComponent.TRINKET_COMPASS, new TrinketCompassDataComponent.TrinketCompassData(trinketData.UUID(), ((Trinket) trinket.getItem()).getDisplayName() + " Tracker"));
+            world.playSound(null, player.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
+            return ActionResult.SUCCESS;
+        });
     }
 }
