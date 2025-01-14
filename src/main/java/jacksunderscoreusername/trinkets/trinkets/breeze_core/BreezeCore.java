@@ -11,6 +11,7 @@ import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.WindChargeEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -58,8 +59,18 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
         super(settings);
     }
 
+    @Override
     public int getMaxModes() {
         return 2;
+    }
+
+    @Override
+    public String getModeName(int mode) {
+        return switch (mode) {
+            case 0 -> "Rocket Jump";
+            case 1 -> "Wind Charged";
+            default -> "";
+        };
     }
 
     public static int getForce(int level) {
@@ -99,8 +110,7 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
             return ActionResult.PASS;
         }
         if (user.isSneaking()) {
-            nextMode(itemStack);
-            world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
+            nextMode(itemStack, (ServerPlayerEntity) user);
             return ActionResult.SUCCESS;
         }
         if (!Trinkets.canPlayerUseTrinkets(user)) {
@@ -170,13 +180,8 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
         Formatting color = Trinkets.getTrinketColor(this);
 
         int mode = Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode();
-        String modeName = switch (mode) {
-            case 0 -> "Rocket Jump";
-            case 1 -> "Wind Charged";
-            default -> "";
-        };
 
-        tooltip.add(Text.literal("Mode: ").append(Text.literal(modeName).formatted(color, Formatting.ITALIC)));
+        tooltip.add(Text.literal("Mode: ").append(Text.literal(getModeName(mode)).formatted(color, Formatting.ITALIC)));
 
         tooltip.add(Text.literal("Current charges: " + charges + " / ").formatted(color, Formatting.ITALIC).append(Text.literal(String.valueOf(maxCharges)).formatted(color, Formatting.ITALIC, Formatting.BOLD)));
         if (charges < maxCharges)

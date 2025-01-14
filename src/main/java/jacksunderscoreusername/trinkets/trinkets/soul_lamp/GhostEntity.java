@@ -48,7 +48,7 @@ public class GhostEntity extends PathAwareEntity {
     public static final int field_28645 = MathHelper.ceil((float) (Math.PI * 5.0 / 4.0));
     protected static final TrackedData<Byte> GHOST_FLAGS = DataTracker.registerData(GhostEntity.class, TrackedDataHandlerRegistry.BYTE);
     private static final int CHARGING_FLAG = 1;
-    public static final int ENTITY_SEARCH_RADIUS = 100;
+    public static final int ENTITY_SEARCH_RADIUS = 50;
     @Nullable
     private BlockPos bounds;
     public StateSaverAndLoader.StoredData.soulLampEntry group;
@@ -102,7 +102,7 @@ public class GhostEntity extends PathAwareEntity {
             if (this.group != null && this.group.lifeTimeLeft == 0) {
                 this.damage(serverWorld, this.getDamageSources().starve(), this.getMaxHealth());
             }
-            if (this.group != null && !this.group.targets.isEmpty() && (this.getTarget() == null || !this.getTarget().isAlive())) {
+            if (this.group != null && this.getOwner() != null && !this.group.targets.isEmpty() && (this.getTarget() == null || !this.getTarget().isAlive())) {
                 List<UUID> sortedPriorityTargets = group.priorityTargets.stream().sorted(Comparator.comparingDouble(x -> serverWorld.getEntity(x) == null ? Integer.MAX_VALUE : Objects.requireNonNull(serverWorld.getEntity(x)).distanceTo(getOwner()))).toList();
                 for (var targetUuid : sortedPriorityTargets)
                     if (serverWorld.getEntity(targetUuid) != null && serverWorld.getEntity(targetUuid) instanceof LivingEntity target) {
@@ -280,7 +280,7 @@ public class GhostEntity extends PathAwareEntity {
             return livingEntity != null &&
                     livingEntity.isAlive() &&
                     !GhostEntity.this.getMoveControl().isMoving() &&
-                    GhostEntity.this.squaredDistanceTo(livingEntity) > 2.0;
+                    GhostEntity.this.squaredDistanceTo(livingEntity) > 4.0;
         }
 
         @Override
@@ -307,6 +307,7 @@ public class GhostEntity extends PathAwareEntity {
         @Override
         public void stop() {
             GhostEntity.this.setCharging(false);
+            GhostEntity.this.setTarget(null);
         }
 
         @Override
@@ -323,7 +324,7 @@ public class GhostEntity extends PathAwareEntity {
                     GhostEntity.this.setCharging(false);
                 } else {
                     double d = GhostEntity.this.squaredDistanceTo(livingEntity);
-                    if (d < 10) {
+                    if (d < 9) {
                         Vec3d vec3d = livingEntity.getEyePos();
                         GhostEntity.this.moveControl.moveTo(vec3d.x, vec3d.y, vec3d.z, 1.0);
                     }
@@ -443,6 +444,7 @@ public class GhostEntity extends PathAwareEntity {
         ServerLivingEntityEvents.ALLOW_DAMAGE.register((entity, source, amount) -> {
             StateSaverAndLoader.StoredData.soulLampEntry group = null;
             LivingEntity targetEntity = null;
+            boolean priority = false;
             if (!(source.getAttacker() instanceof LivingEntity) || !source.getAttacker().isAlive()) return true;
             if (entity instanceof GhostEntity ghost && ghost.group != null) {
                 group = ghost.group;
@@ -453,16 +455,20 @@ public class GhostEntity extends PathAwareEntity {
             } else if (entity instanceof ServerPlayerEntity player && Main.state.data.soulLampGroups.values().stream().anyMatch(entry -> entry.playerUuid.equals(player.getUuid()))) {
                 group = Main.state.data.soulLampGroups.values().stream().filter(entry -> entry.playerUuid.equals(player.getUuid())).toList().getFirst();
                 targetEntity = (LivingEntity) source.getAttacker();
+                priority = true;
             } else if (source.getAttacker() instanceof ServerPlayerEntity player && Main.state.data.soulLampGroups.values().stream().anyMatch(entry -> entry.playerUuid.equals(player.getUuid()))) {
                 group = Main.state.data.soulLampGroups.values().stream().filter(entry -> entry.playerUuid.equals(player.getUuid())).toList().getFirst();
                 targetEntity = entity;
+                priority = true;
             }
             if (group == null || targetEntity == null) return true;
             if (targetEntity instanceof GhostEntity ghost && ghost.group != null && ghost.group.equals(group))
                 return true;
             if (targetEntity instanceof ServerPlayerEntity player && group.playerUuid.equals(player.getUuid()))
                 return true;
-            group.priorityTargets.add(targetEntity.getUuid());
+            if (priority) {
+                group.priorityTargets.add(targetEntity.getUuid());
+            }
             group.targets.add(targetEntity.getUuid());
             return true;
         });

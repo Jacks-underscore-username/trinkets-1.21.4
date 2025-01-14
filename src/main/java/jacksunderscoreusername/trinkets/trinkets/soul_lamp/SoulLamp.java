@@ -12,6 +12,7 @@ import net.minecraft.entity.SpawnReason;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.tooltip.TooltipType;
+import net.minecraft.server.network.ServerPlayerEntity;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.sound.SoundCategory;
 import net.minecraft.sound.SoundEvents;
@@ -64,6 +65,17 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
         return 4;
     }
 
+    @Override
+    public String getModeName(int mode) {
+        return switch (mode) {
+            case 0 -> "Manual Targeting";
+            case 1 -> "Entity Type Targeting";
+            case 2 -> "Current Area Targeting";
+            case 3 -> "Continuous Area Targeting";
+            default -> "";
+        };
+    }
+
     public static int getSpawnCount(int level) {
         return 3 + (level - 1) * 2;
     }
@@ -100,18 +112,28 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
             return ActionResult.PASS;
         }
         if (user.isSneaking()) {
-            nextMode(itemStack);
-            world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
+            nextMode(itemStack, (ServerPlayerEntity) user);
             return ActionResult.SUCCESS;
         }
         if (!Trinkets.canPlayerUseTrinkets(user)) {
             return ActionResult.PASS;
         }
+        TrinketDataComponent.TrinketData data = itemStack.get(TRINKET_DATA);
+        assert data != null;
+        StateSaverAndLoader.StoredData.soulLampEntry oldGroup = Main.state.data.soulLampGroups.get(UUID.fromString(data.UUID()));
+        if (oldGroup != null && getMode(itemStack) != oldGroup.mode) {
+            oldGroup.mode = getMode(itemStack);
+            if (getMode(itemStack) == 2)
+                for (var newTarget : world.getEntitiesByClass(LivingEntity.class, new Box(user.getPos().subtract(GhostEntity.ENTITY_SEARCH_RADIUS), user.getPos().add(GhostEntity.ENTITY_SEARCH_RADIUS)), entity -> !oldGroup.playerUuid.equals(entity.getUuid()) && !oldGroup.members.contains(entity.getUuid()) && !oldGroup.targets.contains(entity.getUuid())))
+                    oldGroup.targets.add(newTarget.getUuid());
+
+            world.playSound(null, user.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1.0F, 1.0F);
+            ServerPlayNetworking.send(Objects.requireNonNull(Main.server.getPlayerManager().getPlayer(user.getUuid())), new SwingHandPayload(hand.equals(Hand.MAIN_HAND)));
+            return ActionResult.SUCCESS;
+        }
         if (itemStack.get(CooldownDataComponent.COOLDOWN) != null) {
             return ActionResult.PASS;
         }
-        TrinketDataComponent.TrinketData data = itemStack.get(TRINKET_DATA);
-        assert data != null;
         int level = data.level();
         int spawnCount = getSpawnCount(level);
         int lifeTime = getLifeTime(level);
@@ -148,15 +170,8 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
         Formatting color = Trinkets.getTrinketColor(this);
 
         int mode = Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode();
-        String modeName = switch (mode) {
-            case 0 -> "Manual Targeting";
-            case 1 -> "Entity Type Targeting";
-            case 2 -> "Current Area Targeting";
-            case 3 -> "Continuous Area Targeting";
-            default -> "";
-        };
 
-        tooltip.add(Text.literal("Mode: ").append(Text.literal(modeName).formatted(color, Formatting.ITALIC)));
+        tooltip.add(Text.literal("Mode: ").append(Text.literal(getModeName(mode)).formatted(color, Formatting.ITALIC)));
 
         if (stack.get(CooldownDataComponent.COOLDOWN) != null) {
             tooltip.add(Text.literal("Recharging for the next " + Utils.prettyTime(Objects.requireNonNull(stack.get(CooldownDataComponent.COOLDOWN)).timeLeft(), false)).formatted(Formatting.ITALIC, Formatting.BOLD));
