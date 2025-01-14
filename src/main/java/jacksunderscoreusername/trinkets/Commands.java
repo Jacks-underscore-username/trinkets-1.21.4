@@ -84,6 +84,19 @@ public class Commands {
                             return 1;
                         })));
 
+        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
+                dispatcher.register(CommandManager.literal("unclaimTrinkets")
+                        .requires(source -> source.hasPermissionLevel(4))
+                        .executes(context -> {
+                            ServerPlayerEntity player = context.getSource().getPlayer();
+                            if (player == null) {
+                                return 0;
+                            }
+                            Main.state.data.claimedTrinketPlayerMap.entrySet().stream().filter(entry -> entry.getValue().equals(player.getUuid())).toList().forEach(entry -> Main.state.data.claimedTrinketPlayerMap.remove(entry.getKey()));
+                            context.getSource().sendFeedback(() -> Text.literal("Unclaimed all trinkets"), true);
+                            return 1;
+                        })));
+
 //        CommandRegistrationCallback.EVENT.register((dispatcher, registryAccess, environment) ->
 //                dispatcher.register(CommandManager.literal("locateTrinket")
 //                        .requires(source -> source.hasPermissionLevel(2))
