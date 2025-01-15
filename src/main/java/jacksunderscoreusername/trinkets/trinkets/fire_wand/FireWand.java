@@ -96,6 +96,9 @@ public class FireWand extends Trinket {
 
     @Override
     public ActionResult use(World world, PlayerEntity user, Hand hand) {
+        if (!world.isClient) {
+            return ActionResult.PASS;
+        }
         if (!Trinkets.canPlayerUseTrinkets(user)) {
             return ActionResult.PASS;
         }

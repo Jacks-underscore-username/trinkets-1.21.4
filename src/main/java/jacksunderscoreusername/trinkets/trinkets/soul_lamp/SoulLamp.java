@@ -90,14 +90,13 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
 
     public void initialize() {
         GhostEntity.initialize();
-        ServerTickEvents.START_WORLD_TICK.register(world -> {
+        ServerTickEvents.START_SERVER_TICK.register(world -> {
             for (var pair : Main.state.data.soulLampGroups.entrySet()) {
                 StateSaverAndLoader.StoredData.soulLampEntry entry = pair.getValue();
                 if (entry.lifeTimeLeft > 0)
                     entry.lifeTimeLeft--;
-                if (entry.members.isEmpty())
+                if (entry.members.isEmpty() || entry.lifeTimeLeft <= 0)
                     Main.state.data.soulLampGroups.remove(pair.getKey());
-
             }
         });
     }
