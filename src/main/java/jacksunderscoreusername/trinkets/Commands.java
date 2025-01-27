@@ -1,18 +1,13 @@
 package jacksunderscoreusername.trinkets;
 
-import com.mojang.brigadier.arguments.ArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.ArgumentBuilder;
 import jacksunderscoreusername.trinkets.trinkets.CooldownDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinket;
 import jacksunderscoreusername.trinkets.trinkets.TrinketDataComponent;
 import jacksunderscoreusername.trinkets.trinkets.Trinkets;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
-import net.minecraft.command.CommandSource;
 import net.minecraft.item.ItemStack;
 import net.minecraft.server.command.CommandManager;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.MutableText;
 import net.minecraft.text.Text;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Rarity;

@@ -119,7 +119,7 @@ public abstract class TrueVillagerMixin implements TrueVillager {
     }
 
     @Unique
-    private HashMap<UUID, Integer> trinkets_1_21_4_v2$playerMessageTimes = new HashMap<>();
+    private final HashMap<UUID, Integer> trinkets_1_21_4_v2$playerMessageTimes = new HashMap<>();
 
     @Unique
     public boolean trinkets_1_21_4_v2$canStartQuest(PlayerEntity player) {
@@ -142,18 +142,26 @@ public abstract class TrueVillagerMixin implements TrueVillager {
         if (result) {
             trinkets_1_21_4_v2$alreadyQuestedPlayers.add(player.getUuid());
         } else if (!player.isSneaking() && (!trinkets_1_21_4_v2$playerMessageTimes.containsKey(player.getUuid())) || System.currentTimeMillis() / 1000 - trinkets_1_21_4_v2$playerMessageTimes.get(player.getUuid()) > 2) {
+            boolean hasHadHome = trinkets_1_21_4_v2$firstHome != null;
+            boolean hasHadJob = trinkets_1_21_4_v2$firstJob != null;
+
             trinkets_1_21_4_v2$playerMessageTimes.put(player.getUuid(), (int) (System.currentTimeMillis() / 1000));
-            Text message = null;
-            if (!sameHome || !sameJob || !wasNeverChildOrZombie)
-                message = Text.literal("This villager will not give quests");
+            String message = null;
+            if (!wasNeverChildOrZombie || (hasHadHome && !sameHome) || (hasHadJob && !sameJob))
+                message = "This villager can never give quests";
             else if (!willGiveQuestsToPlayer)
-                message = Text.literal("This villager will not give you quests");
+                message = "This villager will never give you quests";
             else if (!hasNotQuested)
-                message = Text.literal("You have already taken a quest from this villager");
+                message = "This villager has already given you a quest";
+            else if (!hasHadHome)
+                message = "This villager can't give quests since it has no home";
+            else if (!hasHadJob)
+                message = "This villager can't give quests since it has no job";
             else if (!hasEnoughReputation)
-                message = Text.literal("You do not have enough reputation to start a quest (" + playerReputation + "/" + neededReputation + ")");
-            player.sendMessage(message, false);
-            Entity villager = ((Entity) (Object) this);
+                message = "You do not have enough reputation to start a quest (" + playerReputation + "/" + neededReputation + ")";
+
+            player.sendMessage(Text.literal(message), false);
+            Entity villager = (Entity) (Object) this;
             player.getWorld().playSound(villager, villager.getBlockPos(), SoundEvents.ENTITY_VILLAGER_NO, SoundCategory.NEUTRAL, 1.0F, 1.0F);
         }
         return result;

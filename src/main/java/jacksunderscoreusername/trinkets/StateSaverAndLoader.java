@@ -15,6 +15,8 @@ import java.util.*;
 
 public class StateSaverAndLoader extends PersistentState {
 
+    public static Object soulLampGroupsSync = new Object();
+
     public static class StoredData implements Serializable {
         @Serial
         private static final long serialVersionUID = 4284636239471626404L;

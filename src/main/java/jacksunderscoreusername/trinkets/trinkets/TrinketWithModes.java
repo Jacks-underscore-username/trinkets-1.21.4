@@ -20,7 +20,7 @@ public interface TrinketWithModes {
     }
 
     default void nextMode(ItemStack stack, ServerPlayerEntity player) {
-        int mode = (Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode() + 1) % getMaxModes();
+        int mode = (getMode(stack) + 1) % getMaxModes();
         stack.set(AbstractModeDataComponent.ABSTRACT_MODE, new AbstractModeDataComponent.AbstractMode(mode));
         if (player != null) {
             player.getWorld().playSound(null, player.getBlockPos(), SoundEvents.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.PLAYERS, 1, 1);
@@ -33,6 +33,8 @@ public interface TrinketWithModes {
     }
 
     default int getMode(ItemStack stack) {
+        if (!stack.contains(AbstractModeDataComponent.ABSTRACT_MODE))
+            stack.set(AbstractModeDataComponent.ABSTRACT_MODE, new AbstractModeDataComponent.AbstractMode(0));
         return Objects.requireNonNull(stack.get(AbstractModeDataComponent.ABSTRACT_MODE)).mode();
     }
 }

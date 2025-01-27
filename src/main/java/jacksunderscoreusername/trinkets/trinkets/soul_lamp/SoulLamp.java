@@ -85,7 +85,7 @@ public class SoulLamp extends Trinket implements TrinketWithModes {
     }
 
     public static int getSoulMultiplier(int level) {
-        return 2 + (level - 1);
+        return level;
     }
 
     public void initialize() {

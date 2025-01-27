@@ -28,6 +28,7 @@ public class DelayedExplosion extends Entity implements Ownable {
     private static final TrackedData<Integer> FUSE = DataTracker.registerData(DelayedExplosion.class, TrackedDataHandlerRegistry.INTEGER);
     private static final TrackedData<BlockState> BLOCK_STATE = DataTracker.registerData(DelayedExplosion.class, TrackedDataHandlerRegistry.BLOCK_STATE);
     private static final TrackedData<Float> EXPLOSION_POWER = DataTracker.registerData(DelayedExplosion.class, TrackedDataHandlerRegistry.FLOAT);
+    private static final TrackedData<Boolean> MAKES_FIRE = DataTracker.registerData(DelayedExplosion.class, TrackedDataHandlerRegistry.BOOLEAN);
     private static final ExplosionBehavior TELEPORTED_EXPLOSION_BEHAVIOR = new ExplosionBehavior() {
         @Override
         public boolean canDestroyBlock(Explosion explosion, BlockView world, BlockPos pos, BlockState state, float power) {
@@ -48,11 +49,12 @@ public class DelayedExplosion extends Entity implements Ownable {
         this.intersectionChecked = true;
     }
 
-    public DelayedExplosion(World world, double x, double y, double z, @Nullable LivingEntity igniter, int fuse, float explosionPower) {
+    public DelayedExplosion(World world, double x, double y, double z, @Nullable LivingEntity igniter, int fuse, float explosionPower, boolean makesFire) {
         this(FireWand.DELAYED_EXPLOSION, world);
         this.setPosition(x, y, z);
         this.setFuse(fuse);
         this.setExplosionPower(explosionPower);
+        this.setMakesFire(makesFire);
         this.prevX = x;
         this.prevY = y;
         this.prevZ = z;
@@ -64,6 +66,7 @@ public class DelayedExplosion extends Entity implements Ownable {
         builder.add(FUSE, 0);
         builder.add(BLOCK_STATE, Blocks.TNT.getDefaultState());
         builder.add(EXPLOSION_POWER, 0F);
+        builder.add(MAKES_FIRE, false);
     }
 
     @Override
@@ -98,7 +101,7 @@ public class DelayedExplosion extends Entity implements Ownable {
                         this.getBodyY(0.0625),
                         this.getZ(),
                         this.getExplosionPower(),
-                        true,
+                        this.getMakesFire(),
                         World.ExplosionSourceType.MOB
                 );
     }
@@ -157,6 +160,14 @@ public class DelayedExplosion extends Entity implements Ownable {
 
     public float getExplosionPower() {
         return this.dataTracker.get(EXPLOSION_POWER);
+    }
+
+    public void setMakesFire(boolean makesFire) {
+        this.dataTracker.set(MAKES_FIRE, makesFire);
+    }
+
+    public boolean getMakesFire() {
+        return this.dataTracker.get(MAKES_FIRE);
     }
 
     private void setTeleported(boolean teleported) {

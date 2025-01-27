@@ -6,6 +6,7 @@ import jacksunderscoreusername.trinkets.minix_io.BreezeCoreAntiFall;
 import jacksunderscoreusername.trinkets.payloads.SwingHandPayload;
 import jacksunderscoreusername.trinkets.trinkets.*;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.ProjectileEntity;
 import net.minecraft.entity.projectile.WindChargeEntity;
@@ -20,7 +21,7 @@ import net.minecraft.util.ActionResult;
 import net.minecraft.util.Formatting;
 import net.minecraft.util.Hand;
 import net.minecraft.util.Rarity;
-import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.*;
 import net.minecraft.world.World;
 import org.joml.Vector3f;
 
@@ -61,7 +62,7 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
 
     @Override
     public int getMaxModes() {
-        return 2;
+        return 3;
     }
 
     @Override
@@ -69,6 +70,7 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
         return switch (mode) {
             case 0 -> "Rocket Jump";
             case 1 -> "Wind Charged";
+            case 2 -> "Wind Burst";
             default -> "";
         };
     }
@@ -79,6 +81,14 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
 
     public static float getKnockbackMultiplier(int level) {
         return 1.5F + level * 1.5F;
+    }
+
+    public static int getWindBurstRange(int level) {
+        return 5 + (level - 1) * 2;
+    }
+
+    public static float getWindBurstForce(int level) {
+        return 1.5F + (level - 1) * 0.5F;
     }
 
     public static int getMaxCharges(int level) {
@@ -158,6 +168,17 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
                     0
             );
             ((jacksunderscoreusername.trinkets.minix_io.WindChargeEntity) windCharge).trinkets_1_21_4_v2$setKnockbackMultiplier(getKnockbackMultiplier(level));
+        } else if (mode == 2) {
+            int range = getWindBurstRange(level);
+            BlockPos playerPos = user.getBlockPos();
+            Vec3d exactPlayerPos = user.getPos();
+            List<Entity> nearbyEntities = world.getOtherEntities(user,
+                    new Box(playerPos.getX() - range, playerPos.getY() - range, playerPos.getZ() - range, playerPos.getX() + range, playerPos.getY() + range, playerPos.getZ() + range),
+                    entity -> playerPos.getManhattanDistance(entity.getBlockPos()) <= range);
+            for (Entity entity : nearbyEntities) {
+                entity.addVelocity(exactPlayerPos.subtract(0, 1, 0).relativize(entity.getPos()).normalize().multiply(getWindBurstForce(level)));
+                world.playSound(null, entity.getBlockPos(), SoundEvents.ENTITY_BREEZE_WIND_BURST.value(), SoundCategory.PLAYERS, 1, 1);
+            }
         }
 
         markUsed(itemStack, user);
@@ -197,6 +218,10 @@ public class BreezeCore extends Trinket implements TrinketWithCharges, TrinketWi
             tooltip.add(Text.literal("Right click with this item to consume").formatted(color));
             tooltip.add(Text.literal("1 charge and shoot a wind charge").formatted(color));
             tooltip.add(Text.literal("with a knockback multiplier of " + multiplier).formatted(color));
+        } else if (mode == 2) {
+            tooltip.add(Text.literal("Right click with this item to consume").formatted(color));
+            tooltip.add(Text.literal("1 charge and knockback all entities").formatted(color));
+            tooltip.add(Text.literal("in a ").formatted(color).append(Text.literal(String.valueOf(getWindBurstRange(level))).formatted(color, Formatting.BOLD)).append(Text.literal(" block range with a force of ").formatted(color)).append(Text.literal(String.valueOf(getWindBurstForce(level))).formatted(color, Formatting.BOLD)));
         }
 
         tooltip.add(Text.literal("Gains 1 charge every ").formatted(color).append(Text.literal(Utils.prettyTime(chargeTime, true)).formatted(color, Formatting.BOLD)));
