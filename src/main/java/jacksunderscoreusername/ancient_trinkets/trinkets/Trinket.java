@@ -66,14 +66,6 @@ abstract public class Trinket extends Item {
         Main.state.data.lastTrinketLocations.put(UUID.fromString(data.UUID()), new StateSaverAndLoader.StoredData.lastTrinketLocationEntry(System.currentTimeMillis(), pos));
     }
 
-//    @Override
-//    public void onItemEntityDestroyed(ItemEntity entity) {
-//        if (Objects.requireNonNull(entity.getStack().get(TRINKET_DATA)).UUID().length() != 1) {
-//            this.markRemoved(entity.getStack());
-//        }
-//        super.onItemEntityDestroyed(entity);
-//    }
-
     public void markUsed(ItemStack trinket, PlayerEntity user) {
         if (!(user instanceof ServerPlayerEntity)) {
             user = Main.server.getPlayerManager().getPlayer(user.getUuid());
@@ -135,7 +127,7 @@ abstract public class Trinket extends Item {
         }
         tooltip.add(Text.literal("Level " + data.level()).formatted(Formatting.ITALIC));
         if (data.trackerCount() == 1)
-            tooltip.add(Text.literal("1 compass isee tracking this").formatted(Formatting.ITALIC, Formatting.BOLD));
+            tooltip.add(Text.literal("1 compass is tracking this").formatted(Formatting.ITALIC, Formatting.BOLD));
         else if (data.trackerCount() > 0)
             tooltip.add(Text.literal(data.trackerCount() + " compasses are tracking this").formatted(Formatting.ITALIC, Formatting.BOLD));
         return true;
