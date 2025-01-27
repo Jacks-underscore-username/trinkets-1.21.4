@@ -1,0 +1,17 @@
+{
+  "itemGroup.ancient_trinkets.trinket_group": "Trinkets",
+  "item.ancient_trinkets.activated_echo_shard": "Activated Echo Shard",
+  "item.ancient_trinkets.gravity_disruptor": "Gravity Disruptor",
+  "item.ancient_trinkets.dragons_fury": "Dragons Fury",
+  "item.ancient_trinkets.eternal_bonemeal": "Eternal Bonemeal",
+  "item.ancient_trinkets.suspicious_substance": "Suspicious Substance",
+  "item.ancient_trinkets.soul_lamp": "Soul Lamp",
+  "item.ancient_trinkets.fire_wand": "Fire Wand",
+  "item.ancient_trinkets.breeze_core": "Breeze Core",
+  "item.ancient_trinkets.original_totem": "Original Totem",
+  "item.ancient_trinkets.uncommon_trinket_dust": "Uncommon Trinket Dust",
+  "item.ancient_trinkets.rare_trinket_dust": "Rare Trinket Dust",
+  "item.ancient_trinkets.epic_trinket_dust": "Epic Trinket Dust",
+  "effect.ancient_trinkets.invincible": "Invincible",
+  "entity.ancient_trinkets.ghost": "Ghost"
+}

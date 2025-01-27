@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "package": "jacksunderscoreusername.ancient_trinkets.mixin.client",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+  ]
+}

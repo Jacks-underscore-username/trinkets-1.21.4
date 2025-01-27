@@ -1,9 +1,9 @@
 {
 	"schemaVersion": 1,
-	"id": "trinkets",
+	"id": "ancient_trinkets",
 	"version": "${version}",
-	"name": "Trinkets",
-	"description": "A mod that adds unique trinkets",
+	"name": "Ancient Trinkets",
+	"description": "A mod that adds unique trinkets that can be obtained from quests",
 	"authors": [
 		"jacks-underscore-username"
 	],
@@ -11,20 +11,20 @@
 		"sources": "https://github.com/Jacks-underscore-username/trinkets-1.21.4"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/trinkets/icon.png",
+	"icon": "assets/ancient_trinkets/icon.png",
 	"environment": "*",
 	"entrypoints": {
 		"main": [
-          "jacksunderscoreusername.trinkets.Main"
+          "jacksunderscoreusername.ancient_trinkets.Main"
 		],
 		"client": [
-			"jacksunderscoreusername.trinkets.MainClient"
+			"jacksunderscoreusername.ancient_trinkets.MainClient"
 		]
 	},
 	"mixins": [
-		"trinkets.mixins.json",
+		"ancient_trinkets.mixins.json",
 		{
-			"config": "trinkets.client.mixins.json",
+			"config": "ancient_trinkets.client.mixins.json",
 			"environment": "client"
 		}
 	],
