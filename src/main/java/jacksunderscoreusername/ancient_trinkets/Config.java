@@ -44,12 +44,12 @@ public class Config {
     public int max_player_trinkets = 1;
 
     @SerializedName("// The mode used to determine if a player has too many ancient_trinkets, only matters if 'Max ancient_trinkets per player' is > 0")
-    public final String _comment_player_limit_mode = "(Default: 2)";
+    public final String _comment_player_limit_mode = "(Default: 1)";
     @SerializedName("// 1: Only counts the ancient_trinkets when the player uses them")
     public final String _comment_player_limit_mode_0 = "";
     @SerializedName("// 2: All ancient_trinkets are now 'claimed' when picked up until another player picks it up or it is destroyed, counts all ancient_trinkets currently claimed by the player")
     public final String _comment_player_limit_mode_2 = "";
-    public int player_limit_mode = 2;
+    public int player_limit_mode = 1;
 
     @SerializedName("// Delays trinket disablement for modes 1 and 2 until the condition has been met for X seconds, this is to prevent a player throwing a trinket at someone else and disabling their ancient_trinkets")
     public final String _comment_trinket_interference_warmup = "(Default: 15)";
